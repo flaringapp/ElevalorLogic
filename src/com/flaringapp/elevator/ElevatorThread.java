@@ -7,7 +7,7 @@ public class ElevatorThread extends Thread implements Elevator {
 
 //    private static final int DOOR_OPERATION_DURATION = 3000;
 
-    private static final int speed = 2000;
+    private static final int SPEED = 2000;
     private static final int LEAVE_DELAY = 5000;
 
     private final ElevatorControllable elevator;
@@ -138,7 +138,7 @@ public class ElevatorThread extends Thread implements Elevator {
 
     private void waitForFloorMovement() {
         try {
-            stateLock.wait(speed);
+            stateLock.wait(SPEED);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
