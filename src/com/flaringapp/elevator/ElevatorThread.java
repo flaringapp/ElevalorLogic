@@ -1,5 +1,7 @@
 package com.flaringapp.elevator;
 
+import java.util.List;
+
 public class ElevatorThread extends Thread implements Elevator {
 
 //    private static final int DOOR_OPERATION_DURATION = 3000;
@@ -26,6 +28,11 @@ public class ElevatorThread extends Thread implements Elevator {
     @Override
     public int getCurrentFloor() {
         return elevator.getCurrentFloor();
+    }
+
+    @Override
+    public List<ElevatorConsumer> getConsumers() {
+        return elevator.getConsumers();
     }
 
 //    @Override

@@ -2,7 +2,7 @@ package com.flaringapp.person;
 
 public interface Person {
 
-    public String getPersonName();
+    String getPersonName();
 
-    public float getWeight();
+    float getWeight();
 }
