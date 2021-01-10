@@ -1,11 +1,9 @@
 package com.flaringapp.elevator.strategy;
 
-import com.flaringapp.elevator.ElevatorConsumer;
-
-import java.util.List;
+import com.flaringapp.elevator.Elevator;
 
 public interface ElevatorStrategy {
 
-    abstract int resolveFloorToGo(List<ElevatorConsumer> consumers);
+    int resolveFloorToGo(Elevator elevator);
 
 }

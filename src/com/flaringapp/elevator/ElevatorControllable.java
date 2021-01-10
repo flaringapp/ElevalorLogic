@@ -6,4 +6,6 @@ public interface ElevatorControllable extends Elevator {
 
     void setCurrentFloor(int floor);
 
+    void setGoesUpstairs(boolean goesUpstairs);
+
 }

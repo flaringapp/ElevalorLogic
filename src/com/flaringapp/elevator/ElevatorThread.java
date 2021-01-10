@@ -1,18 +1,18 @@
 package com.flaringapp.elevator;
 
 import java.util.List;
+import java.util.Set;
 
 public class ElevatorThread extends Thread implements Elevator {
 
 //    private static final int DOOR_OPERATION_DURATION = 3000;
 
     private static final int speed = 2000;
-
     private static final int LEAVE_DELAY = 5000;
 
-    private final Object stateLock = new Object();
-
     private final ElevatorControllable elevator;
+
+    private final Object stateLock = new Object();
 
     private boolean canLeave = true;
 
@@ -22,7 +22,10 @@ public class ElevatorThread extends Thread implements Elevator {
 
     @Override
     public void run() {
-        super.run();
+        // TODO end condition
+        while (true) {
+            waitToActivate();
+        }
     }
 
     @Override
@@ -55,6 +58,21 @@ public class ElevatorThread extends Thread implements Elevator {
     public void leave(ElevatorConsumer consumer) {
         elevator.leave(consumer);
         resetDelayedMove();
+    }
+
+    @Override
+    public Set<Integer> getCalledFloors() {
+        return elevator.getCalledFloors();
+    }
+
+    @Override
+    public void callAtFloor(int floor) {
+        elevator.callAtFloor(floor);
+    }
+
+    @Override
+    public boolean goesUpstairs() {
+        return elevator.goesUpstairs();
     }
 
     private void goToFloor(int floor) {
@@ -105,6 +123,18 @@ public class ElevatorThread extends Thread implements Elevator {
 //        }
 //        action.run();
 //    }
+
+    private void waitToActivate() {
+        synchronized (stateLock) {
+            while (getCalledFloors().isEmpty() && getConsumers().isEmpty()) {
+                try {
+                    stateLock.wait();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
 
     private void waitForFloorMovement() {
         try {

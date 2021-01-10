@@ -41,7 +41,10 @@ public class BuildingImpl implements Building {
 
     @Override
     public void enterQueue(PersonInBuilding person) {
-        floors.get(person.sourceFloor()).enterQueue(person);
+        Floor floor = floors.get(person.sourceFloor());
+        boolean callElevator = floor.getQueueAtElevator(person.elevatorIndex()).isEmpty();
+        floor.enterQueue(person);
+        if (callElevator) elevators.get(person.elevatorIndex()).callAtFloor(person.sourceFloor());
     }
 
     private void kickConsumersFromElevator(Elevator elevator) {

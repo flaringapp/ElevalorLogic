@@ -2,6 +2,8 @@ package com.flaringapp.elevator;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class ElevatorImpl implements ElevatorControllable {
 
@@ -10,7 +12,11 @@ public class ElevatorImpl implements ElevatorControllable {
 
     private int currentFloor;
 
+    private final Set<Integer> calledFloors = new TreeSet<>();
+
     private final List<ElevatorConsumer> consumers = new ArrayList<>();
+
+    private boolean goesUpstairs = false;
 
     public ElevatorImpl(float maxWeight, int maxSize) {
         this(maxWeight, maxSize, 1);
@@ -28,11 +34,6 @@ public class ElevatorImpl implements ElevatorControllable {
     }
 
     @Override
-    public List<ElevatorConsumer> getConsumers() {
-        return consumers;
-    }
-
-    @Override
     public void setCurrentFloor(int floor) {
         currentFloor = floor;
     }
@@ -41,6 +42,21 @@ public class ElevatorImpl implements ElevatorControllable {
 //    public void setOpened(boolean isOpened) {
 //        this.isOpened = isOpened;
 //    }
+
+
+    public Set<Integer> getCalledFloors() {
+        return calledFloors;
+    }
+
+    @Override
+    public void callAtFloor(int floor) {
+        calledFloors.add(floor);
+    }
+
+    @Override
+    public List<ElevatorConsumer> getConsumers() {
+        return consumers;
+    }
 
     @Override
     public boolean canEnter(ElevatorConsumer consumer) {
@@ -65,6 +81,16 @@ public class ElevatorImpl implements ElevatorControllable {
     @Override
     public void leave(ElevatorConsumer consumer) {
         consumers.remove(consumer);
+    }
+
+    @Override
+    public boolean goesUpstairs() {
+        return goesUpstairs;
+    }
+
+    @Override
+    public void setGoesUpstairs(boolean goesUpstairs) {
+        this.goesUpstairs = goesUpstairs;
     }
 
     private float currentWeight() {
