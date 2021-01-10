@@ -1,6 +1,8 @@
 package com.flaringapp.person;
 
 import com.flaringapp.building.Building;
+import com.flaringapp.elevator.Elevator;
+import com.flaringapp.elevator.ElevatorCallbacks;
 import com.flaringapp.floor.Floor;
 import com.flaringapp.floor.QueueConsumer;
 
@@ -9,7 +11,7 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Random;
 
-public class PersonThread extends Thread implements Person {
+public class PersonThread extends Thread implements Person, ElevatorCallbacks {
 
     public static final int NO_INDEX = -1;
 
@@ -57,7 +59,18 @@ public class PersonThread extends Thread implements Person {
         return person.getWeight();
     }
 
-//    @Override
+    @Override
+    public void onElevatorStartedMovement(Elevator elevator) {
+
+    }
+
+    @Override
+    public void onElevatorCompletedMovement(Elevator elevator) {
+        reachedDestination = true;
+        notify();
+    }
+
+    //    @Override
 //    public void onLeftElevator() {
 //        reachedDestination = true;
 //        notify();
@@ -87,7 +100,7 @@ public class PersonThread extends Thread implements Person {
         Floor floor = building.getFloors().get(fromFloor);
         int smallestQueueIndex = resolveRandomSmallestQueueIndex(floor);
 
-        PersonInBuilding personInBuilding = new PersonInBuilding(person, fromFloor, toFloor, smallestQueueIndex);
+        PersonInBuilding personInBuilding = new PersonInBuilding(person, fromFloor, toFloor, smallestQueueIndex, this);
         building.enterQueue(personInBuilding);
 
 //        listener.onPersonEnteredQueue(smallestQueueIndex);

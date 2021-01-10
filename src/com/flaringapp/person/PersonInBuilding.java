@@ -1,5 +1,7 @@
 package com.flaringapp.person;
 
+import com.flaringapp.elevator.Elevator;
+import com.flaringapp.elevator.ElevatorCallbacks;
 import com.flaringapp.floor.QueueConsumer;
 
 public class PersonInBuilding implements Person, QueueConsumer {
@@ -11,11 +13,14 @@ public class PersonInBuilding implements Person, QueueConsumer {
 
     private final int elevator;
 
-    public PersonInBuilding(Person person, int initialFloor, int targetFloor, int elevator) {
+    private final ElevatorCallbacks elevatorCallbacks;
+
+    public PersonInBuilding(Person person, int initialFloor, int targetFloor, int elevator, ElevatorCallbacks elevatorCallbacks) {
         this.person = person;
         this.initialFloor = initialFloor;
         this.targetFloor = targetFloor;
         this.elevator = elevator;
+        this.elevatorCallbacks = elevatorCallbacks;
     }
 
     @Override
@@ -54,12 +59,13 @@ public class PersonInBuilding implements Person, QueueConsumer {
     }
 
     @Override
-    public void onEnteredElevator() {
-//        listener.onPersonEnteredElevator(initialFloor, elevator);
+    public void onElevatorStartedMovement(Elevator elevator) {
+        elevatorCallbacks.onElevatorStartedMovement(elevator);
     }
 
     @Override
-    public void onLeftElevator() {
-//        listener.onPersonLeftElevator(targetFloor, elevator);
+    public void onElevatorCompletedMovement(Elevator elevator) {
+        elevator.leave(this);
+        elevatorCallbacks.onElevatorCompletedMovement(elevator);
     }
 }
