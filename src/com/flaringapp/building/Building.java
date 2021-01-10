@@ -1,5 +1,6 @@
 package com.flaringapp.building;
 
+import com.flaringapp.elevator.Elevator;
 import com.flaringapp.floor.Floor;
 import com.flaringapp.person.PersonInBuilding;
 
@@ -12,5 +13,7 @@ public interface Building {
     int floorsCount();
 
     void enterQueue(PersonInBuilding person);
+
+    void fillElevatorWithConsumers(Elevator elevator);
 
 }

@@ -7,8 +7,10 @@ public interface Floor {
 
     List<Queue<QueueConsumer>> getFloorQueues();
 
-    void enterQueue(QueueConsumer person, int queueIndex);
+    Queue<QueueConsumer> getQueueAtFloor(int floor);
 
-    void leaveQueue(QueueConsumer person, int elevatorIndex);
+    void enterQueue(QueueConsumer person);
+
+    void leaveQueue(QueueConsumer person);
 
 }

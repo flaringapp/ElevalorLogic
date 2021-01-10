@@ -6,9 +6,13 @@ public class ElevatorThread extends Thread implements Elevator {
 
     private static final int speed = 2000;
 
-    private final Object movementLock = new Object();
+    private static final int leaveDelay = 5000;
+
+    private final Object stateLock = new Object();
 
     private final ElevatorControllable elevator;
+
+    private boolean canLeave = true;
 
     public ElevatorThread(ElevatorControllable elevator) {
         this.elevator = elevator;
@@ -24,10 +28,10 @@ public class ElevatorThread extends Thread implements Elevator {
         return elevator.getCurrentFloor();
     }
 
-    @Override
-    public boolean isOpened() {
-        return elevator.isOpened();
-    }
+//    @Override
+//    public boolean isOpened() {
+//        return elevator.isOpened();
+//    }
 
     @Override
     public boolean canEnter(ElevatorConsumer consumer) {
@@ -37,21 +41,42 @@ public class ElevatorThread extends Thread implements Elevator {
     @Override
     public void enter(ElevatorConsumer consumer) {
         elevator.enter(consumer);
+        resetDelayedMove();
     }
 
     @Override
     public void leave(ElevatorConsumer consumer) {
         elevator.leave(consumer);
+        resetDelayedMove();
     }
 
     private void goToFloor(int floor) {
-        int distance = floor - elevator.getCurrentFloor();
-        boolean increment = distance < 0;
-        while (distance != 0) {
-            waitForFloorMovement();
-            if (increment) distance++;
-            else distance--;
-            elevator.setCurrentFloor(floor - distance);
+        synchronized (stateLock) {
+            int distance = floor - elevator.getCurrentFloor();
+            boolean increment = distance < 0;
+            while (distance != 0) {
+                waitForFloorMovement();
+                if (increment) distance++;
+                else distance--;
+                elevator.setCurrentFloor(floor - distance);
+            }
+
+            moveAfterDelay();
+        }
+    }
+
+    private void moveAfterDelay() {
+        canLeave = false;
+        while (!canLeave) {
+            canLeave = true;
+            waitForMove();
+        }
+    }
+
+    private void resetDelayedMove() {
+        synchronized (stateLock) {
+            canLeave = false;
+            stateLock.notify();
         }
     }
 
@@ -74,7 +99,15 @@ public class ElevatorThread extends Thread implements Elevator {
 
     private void waitForFloorMovement() {
         try {
-            movementLock.wait(speed);
+            stateLock.wait(speed);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void waitForMove() {
+        try {
+            stateLock.wait(leaveDelay);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

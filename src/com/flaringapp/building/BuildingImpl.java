@@ -3,10 +3,11 @@ package com.flaringapp.building;
 import com.flaringapp.elevator.Elevator;
 import com.flaringapp.elevator.ElevatorConsumer;
 import com.flaringapp.floor.Floor;
-import com.flaringapp.person.Person;
+import com.flaringapp.floor.QueueConsumer;
 import com.flaringapp.person.PersonInBuilding;
 
 import java.util.List;
+import java.util.Queue;
 
 public class BuildingImpl implements Building {
 
@@ -30,26 +31,33 @@ public class BuildingImpl implements Building {
 
     @Override
     public void enterQueue(PersonInBuilding person) {
-
+        floors.get(person.sourceFloor()).enterQueue(person);
     }
 
     @Override
-    public void enterQueue(Person person, int floorIndex, int queueIndex) {
-        floors.get(floorIndex).enterQueue(person, queueIndex);
+    public void fillElevatorWithConsumers(Elevator elevator) {
+        int elevatorIndex = elevators.indexOf(elevator);
+        Floor floor = floors.get(elevator.getCurrentFloor());
+        Queue<QueueConsumer> queue = floor.getQueueAtFloor(elevatorIndex);
+
+        while (!queue.isEmpty()) {
+            QueueConsumer consumer = queue.peek();
+            if (!elevator.canEnter(consumer)) break;
+            queue.poll();
+            elevator.enter(consumer);
+        }
     }
 
-    private void leaveQueue(Person person, int floorIndex, int queueIndex) {
-        floors.get(floorIndex).leaveQueue(person, queueIndex);
+    private void leaveQueue(QueueConsumer consumer) {
+        floors.get(consumer.sourceFloor()).leaveQueue(consumer);
     }
 
-    private void enterElevator(ElevatorConsumer person, Elevator elevator) {
-        Elevator elevator = elevators.get(elevatorIndex);
-        if (elevator.getCurrentFloor() != floorIndex) {
-            throw new IllegalStateException("Person " + person + " tried to enter elevator at floor" +
-                    floorIndex + " but elevator is currently at floor " + elevator.getCurrentFloor()
+    private void enterElevator(ElevatorConsumer consumer, Elevator elevator) {
+        if (elevator.getCurrentFloor() != consumer.sourceFloor()) {
+            throw new IllegalStateException("Consumer " + consumer + " tried to enter elevator at floor" +
+                    consumer.sourceFloor() + " but elevator is currently at floor " + elevator.getCurrentFloor()
             );
         }
-
-        elevator.use(person);
+        elevator.enter(consumer);
     }
 }

@@ -10,8 +10,6 @@ public class ElevatorImpl implements ElevatorControllable {
 
     private int currentFloor;
 
-    private boolean isOpened = false;
-
     private final List<ElevatorConsumer> consumers = new ArrayList<>();
 
     public ElevatorImpl(float maxWeight, int maxSize) {
@@ -34,15 +32,10 @@ public class ElevatorImpl implements ElevatorControllable {
         currentFloor = floor;
     }
 
-    @Override
-    public boolean isOpened() {
-        return isOpened;
-    }
-
-    @Override
-    public void setOpened(boolean isOpened) {
-        this.isOpened = isOpened;
-    }
+//    @Override
+//    public void setOpened(boolean isOpened) {
+//        this.isOpened = isOpened;
+//    }
 
     @Override
     public boolean canEnter(ElevatorConsumer consumer) {
@@ -52,9 +45,9 @@ public class ElevatorImpl implements ElevatorControllable {
 
     @Override
     public void enter(ElevatorConsumer consumer) {
-        if (!isOpened) {
-            throw new IllegalStateException("Consumer " + consumer + " tried to use a closed elevator!");
-        }
+//        if (!isOpened) {
+//            throw new IllegalStateException("Consumer " + consumer + " tried to use a closed elevator!");
+//        }
         if (!canEnter(consumer)) {
             throw new IllegalStateException("Consumer " + consumer + " cannot use elevator!");
         }

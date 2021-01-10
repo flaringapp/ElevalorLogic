@@ -2,7 +2,6 @@ package com.flaringapp.person;
 
 import com.flaringapp.elevator.ElevatorConsumer;
 import com.flaringapp.floor.QueueConsumer;
-import com.flaringapp.person.listener.PersonListener;
 
 public class PersonInBuilding implements Person, ElevatorConsumer, QueueConsumer {
 
@@ -13,14 +12,11 @@ public class PersonInBuilding implements Person, ElevatorConsumer, QueueConsumer
 
     private final int elevator;
 
-    private final PersonListener listener;
-
-    public PersonInBuilding(Person person, int initialFloor, int targetFloor, int elevator, PersonListener listener) {
+    public PersonInBuilding(Person person, int initialFloor, int targetFloor, int elevator) {
         this.person = person;
         this.initialFloor = initialFloor;
         this.targetFloor = targetFloor;
         this.elevator = elevator;
-        this.listener = listener;
     }
 
     @Override
@@ -44,22 +40,27 @@ public class PersonInBuilding implements Person, ElevatorConsumer, QueueConsumer
     }
 
     @Override
+    public int elevatorIndex() {
+        return elevator;
+    }
+
+    @Override
     public void onEnteredQueue(int queue) {
-        listener.onPersonEnteredQueue(initialFloor, queue);
+//        listener.onPersonEnteredQueue(initialFloor, queue);
     }
 
     @Override
     public void onLeftQueue(int queue) {
-        listener.onPersonEnteredQueue(initialFloor, queue);
+//        listener.onPersonEnteredQueue(initialFloor, queue);
     }
 
     @Override
     public void onEnteredElevator() {
-        listener.onPersonEnteredElevator(initialFloor, elevator);
+//        listener.onPersonEnteredElevator(initialFloor, elevator);
     }
 
     @Override
     public void onLeftElevator() {
-        listener.onPersonLeftElevator(targetFloor, elevator);
+//        listener.onPersonLeftElevator(targetFloor, elevator);
     }
 }

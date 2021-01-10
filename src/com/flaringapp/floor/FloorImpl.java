@@ -23,15 +23,20 @@ public class FloorImpl implements Floor {
     }
 
     @Override
-    public void enterQueue(QueueConsumer person, int queueIndex) {
-        queues.get(queueIndex).add(person);
+    public Queue<QueueConsumer> getQueueAtFloor(int floor) {
+        return queues.get(floor);
     }
 
     @Override
-    public void leaveQueue(QueueConsumer person, int elevatorIndex) {
-        Queue<QueueConsumer> queue = queues.get(elevatorIndex);
+    public void enterQueue(QueueConsumer person) {
+        queues.get(person.elevatorIndex()).add(person);
+    }
+
+    @Override
+    public void leaveQueue(QueueConsumer person) {
+        Queue<QueueConsumer> queue = queues.get(person.elevatorIndex());
         if (queue.peek() != person) {
-            throw new IllegalStateException("Person " + person + " tried to enter elevator " + elevatorIndex +
+            throw new IllegalStateException("Person " + person + " tried to enter elevator " + person.elevatorIndex() +
                     " without entering it's queue"
             );
         }

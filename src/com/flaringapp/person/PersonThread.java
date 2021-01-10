@@ -2,30 +2,27 @@ package com.flaringapp.person;
 
 import com.flaringapp.building.Building;
 import com.flaringapp.floor.Floor;
-import com.flaringapp.person.listener.EmptyPersonListener;
-import com.flaringapp.person.listener.PersonListener;
+import com.flaringapp.floor.QueueConsumer;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Random;
 
-public class PersonThread extends Thread implements Person, PersonListener {
+public class PersonThread extends Thread implements Person {
 
     public static final int NO_INDEX = -1;
 
-    private static final PersonListener emptyListener = new EmptyPersonListener();
+//    private static final PersonListener emptyListener = new EmptyPersonListener();
 
     private final Person person;
 
     private final Building building;
 
-    private PersonListener listener = emptyListener;
+//    private PersonListener listener = emptyListener;
 
     private final int fromFloor;
     private final int toFloor;
-
-    private int enteredQueueIndex = NO_INDEX;
 
     private boolean reachedDestination = false;
 
@@ -36,14 +33,14 @@ public class PersonThread extends Thread implements Person, PersonListener {
         this.toFloor = toFloor;
     }
 
-    public void setListener(PersonListener listener) {
-        if (listener == null) this.listener = emptyListener;
-        else this.listener = listener;
-    }
+//    public void setListener(PersonListener listener) {
+//        if (listener == null) this.listener = emptyListener;
+//        else this.listener = listener;
+//    }
 
     @Override
     public void run() {
-        listener.onPersonEnteredFloor(fromFloor);
+//        listener.onPersonEnteredFloor(fromFloor);
 
         enterSmallestQueue();
 
@@ -60,45 +57,44 @@ public class PersonThread extends Thread implements Person, PersonListener {
         return person.getWeight();
     }
 
-    @Override
-    public void onLeftElevator() {
-        reachedDestination = true;
-        notify();
-    }
-
-    @Override
-    public void onPersonEnteredFloor(int floor) {
-        listener.onPersonEnteredFloor(floor);
-    }
-
-    @Override
-    public void onPersonEnteredQueue(int floor, int queue) {
-        listener.onPersonEnteredQueue(floor, queue);
-    }
-
-    @Override
-    public void onPersonEnteredElevator(int floorIndex, int elevatorIndex) {
-        listener.onPersonEnteredElevator(floorIndex, elevatorIndex);
-    }
-
-    @Override
-    public void onPersonLeftElevator(int floorIndex, int elevatorIndex) {
-        listener.onPersonEnteredElevator(floorIndex, elevatorIndex);
-    }
+//    @Override
+//    public void onLeftElevator() {
+//        reachedDestination = true;
+//        notify();
+//    }
+//
+//    @Override
+//    public void onPersonEnteredFloor(int floor) {
+//        listener.onPersonEnteredFloor(floor);
+//    }
+//
+//    @Override
+//    public void onPersonEnteredQueue(int floor, int queue) {
+//        listener.onPersonEnteredQueue(floor, queue);
+//    }
+//
+//    @Override
+//    public void onPersonEnteredElevator(int floorIndex, int elevatorIndex) {
+//        listener.onPersonEnteredElevator(floorIndex, elevatorIndex);
+//    }
+//
+//    @Override
+//    public void onPersonLeftElevator(int floorIndex, int elevatorIndex) {
+//        listener.onPersonEnteredElevator(floorIndex, elevatorIndex);
+//    }
 
     private void enterSmallestQueue() {
         Floor floor = building.getFloors().get(fromFloor);
         int smallestQueueIndex = resolveRandomSmallestQueueIndex(floor);
 
-        enteredQueueIndex = smallestQueueIndex;
+        PersonInBuilding personInBuilding = new PersonInBuilding(person, fromFloor, toFloor, smallestQueueIndex);
+        building.enterQueue(personInBuilding);
 
-        building.enterQueue(person, fromFloor, smallestQueueIndex);
-
-        listener.onPersonEnteredQueue(smallestQueueIndex);
+//        listener.onPersonEnteredQueue(smallestQueueIndex);
     }
 
     private int resolveRandomSmallestQueueIndex(Floor floor) {
-        List<Queue<Person>> queues = floor.getFloorQueues();
+        List<Queue<QueueConsumer>> queues = floor.getFloorQueues();
 
         int smallestQueueLength = Integer.MAX_VALUE;
         List<Integer> smallestQueueIndices = new ArrayList<>();
@@ -127,6 +123,6 @@ public class PersonThread extends Thread implements Person, PersonListener {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        listener.onPersonLeftElevator(toFloor, enteredQueueIndex);
+//        listener.onPersonLeftElevator(toFloor, enteredQueueIndex);
     }
 }
