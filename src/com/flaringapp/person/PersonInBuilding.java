@@ -1,9 +1,8 @@
 package com.flaringapp.person;
 
-import com.flaringapp.elevator.ElevatorConsumer;
 import com.flaringapp.floor.QueueConsumer;
 
-public class PersonInBuilding implements Person, ElevatorConsumer, QueueConsumer {
+public class PersonInBuilding implements Person, QueueConsumer {
 
     private final Person person;
 

@@ -28,6 +28,11 @@ public class ElevatorImpl implements ElevatorControllable {
     }
 
     @Override
+    public List<ElevatorConsumer> getConsumers() {
+        return consumers;
+    }
+
+    @Override
     public void setCurrentFloor(int floor) {
         currentFloor = floor;
     }

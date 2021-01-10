@@ -10,10 +10,12 @@ public interface Building {
 
     List<Floor> getFloors();
 
+    List<Elevator> getElevators();
+
     int floorsCount();
 
-    void enterQueue(PersonInBuilding person);
+    int elevatorsCount();
 
-    void fillElevatorWithConsumers(Elevator elevator);
+    void enterQueue(PersonInBuilding person);
 
 }

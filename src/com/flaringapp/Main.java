@@ -15,6 +15,8 @@ import java.util.List;
 public class Main {
 
     private static final int ELEVATORS_COUNT = 4;
+    private static final float ELEVATOR_WEIGHT = 600f;
+    private static final int ELEVATOR_SIZE = 5;
 
     public static void main(String[] args) {
         Building building = createBuilding();
@@ -55,6 +57,6 @@ public class Main {
     }
 
     private static ElevatorImpl createElevator() {
-        return new ElevatorImpl(600f, 5);
+        return new ElevatorImpl(ELEVATOR_WEIGHT, ELEVATOR_SIZE);
     }
 }

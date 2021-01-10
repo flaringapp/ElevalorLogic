@@ -9,12 +9,12 @@ import java.util.Random;
 
 public class UserSpawner {
 
-    private static final int delay = 5000;
+    private static final int DELAY = 5000;
 
     private final Building building;
 
     private final Thread spawnerThread = new Thread(this::infiniteSpawning, "SpawnerThread");
-    private final Object lock = new Object();
+    private final Object activeLock = new Object();
 
     private boolean isActive = false;
 
@@ -32,16 +32,18 @@ public class UserSpawner {
 
     public void stopSpawn() {
         isActive = false;
-        lock.notify();
+        activeLock.notify();
     }
 
     private void infiniteSpawning() {
-        while (isActive) {
-            executeSpawn();
-            try {
-                lock.wait(delay);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+        synchronized (activeLock) {
+            while (isActive) {
+                executeSpawn();
+                try {
+                    activeLock.wait(DELAY);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }

@@ -25,8 +25,18 @@ public class BuildingImpl implements Building {
     }
 
     @Override
+    public List<Elevator> getElevators() {
+        return elevators;
+    }
+
+    @Override
     public int floorsCount() {
         return floors.size();
+    }
+
+    @Override
+    public int elevatorsCount() {
+        return elevators.size();
     }
 
     @Override
@@ -34,11 +44,18 @@ public class BuildingImpl implements Building {
         floors.get(person.sourceFloor()).enterQueue(person);
     }
 
-    @Override
-    public void fillElevatorWithConsumers(Elevator elevator) {
+    private void kickConsumersFromElevator(Elevator elevator) {
+        elevator.getConsumers().forEach(consumer -> {
+            if (consumer.destinationFloor() == elevator.getCurrentFloor()) {
+                elevator.leave(consumer);
+            }
+        });
+    }
+
+    private void fillElevatorWithConsumers(Elevator elevator) {
         int elevatorIndex = elevators.indexOf(elevator);
         Floor floor = floors.get(elevator.getCurrentFloor());
-        Queue<QueueConsumer> queue = floor.getQueueAtFloor(elevatorIndex);
+        Queue<QueueConsumer> queue = floor.getQueueAtElevator(elevatorIndex);
 
         while (!queue.isEmpty()) {
             QueueConsumer consumer = queue.peek();

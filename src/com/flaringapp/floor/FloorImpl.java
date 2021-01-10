@@ -18,22 +18,22 @@ public class FloorImpl implements Floor {
     }
 
     @Override
-    public List<Queue<QueueConsumer>> getFloorQueues() {
+    public synchronized List<Queue<QueueConsumer>> getFloorQueues() {
         return queues;
     }
 
     @Override
-    public Queue<QueueConsumer> getQueueAtFloor(int floor) {
+    public synchronized Queue<QueueConsumer> getQueueAtElevator(int floor) {
         return queues.get(floor);
     }
 
     @Override
-    public void enterQueue(QueueConsumer person) {
+    public synchronized void enterQueue(QueueConsumer person) {
         queues.get(person.elevatorIndex()).add(person);
     }
 
     @Override
-    public void leaveQueue(QueueConsumer person) {
+    public synchronized void leaveQueue(QueueConsumer person) {
         Queue<QueueConsumer> queue = queues.get(person.elevatorIndex());
         if (queue.peek() != person) {
             throw new IllegalStateException("Person " + person + " tried to enter elevator " + person.elevatorIndex() +

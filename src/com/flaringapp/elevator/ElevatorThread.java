@@ -6,7 +6,7 @@ public class ElevatorThread extends Thread implements Elevator {
 
     private static final int speed = 2000;
 
-    private static final int leaveDelay = 5000;
+    private static final int LEAVE_DELAY = 5000;
 
     private final Object stateLock = new Object();
 
@@ -71,6 +71,8 @@ public class ElevatorThread extends Thread implements Elevator {
             canLeave = true;
             waitForMove();
         }
+
+        // TODO move further
     }
 
     private void resetDelayedMove() {
@@ -107,7 +109,7 @@ public class ElevatorThread extends Thread implements Elevator {
 
     private void waitForMove() {
         try {
-            stateLock.wait(leaveDelay);
+            stateLock.wait(LEAVE_DELAY);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
