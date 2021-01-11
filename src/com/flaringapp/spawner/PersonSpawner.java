@@ -41,7 +41,7 @@ public class PersonSpawner {
     }
 
     private void infiniteSpawning() {
-        Logger.getInstance().logTitle("person spawner started successfully");
+        Logger.getInstance().logTitle("Person spawner started successfully");
         synchronized (activeLock) {
             while (isActive) {
                 try {
@@ -52,7 +52,7 @@ public class PersonSpawner {
                 executeSpawn();
             }
         }
-        Logger.getInstance().logTitle("person spawner stopped successfully");
+        Logger.getInstance().logTitle("Person spawner stopped successfully");
     }
 
     private void executeSpawn() {
