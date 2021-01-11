@@ -2,6 +2,7 @@ package com.flaringapp.building;
 
 import com.flaringapp.elevator.Elevator;
 import com.flaringapp.floor.Floor;
+import com.flaringapp.logger.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -65,27 +66,31 @@ public class BuildingImpl implements Building {
         boolean callElevator = floor.enterQueue(consumer);
         consumer.onQueueEntered();
 
+        Logger.getInstance().log(consumer + " entered queue " + consumer.elevatorIndex());
+
         if (callElevator) {
             Elevator elevator = elevators.get(consumer.elevatorIndex());
             if (elevator.enter(consumer)) {
                 floor.leaveQueue(consumer);
+                Logger.getInstance().log(consumer + " instantly left queue and entered " + elevator + " at floor " + consumer.sourceFloor());
             } else {
                 elevators.get(consumer.elevatorIndex())
                         .callAtFloor(consumer.sourceFloor());
+                Logger.getInstance().log(consumer + " called " + elevator + " at floor " + consumer.sourceFloor());
             }
         }
     }
 
     @Override
-    public void enterElevator(BuildingConsumer consumer) {
+    public boolean enterElevator(BuildingConsumer consumer) {
         Floor floor = floors.get(consumer.sourceFloor());
         floor.leaveQueue(consumer);
-        elevators.get(consumer.elevatorIndex()).enter(consumer);
+        return elevators.get(consumer.elevatorIndex()).enter(consumer);
     }
 
     @Override
-    public void leaveElevator(BuildingConsumer consumer) {
-        elevators.get(consumer.elevatorIndex()).leave(consumer);
+    public boolean leaveElevator(BuildingConsumer consumer) {
+        return elevators.get(consumer.elevatorIndex()).leave(consumer);
     }
 
     private void fillElevatorWithConsumers(Elevator elevator) {

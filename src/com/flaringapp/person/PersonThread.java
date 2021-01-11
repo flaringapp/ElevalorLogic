@@ -37,19 +37,23 @@ public class PersonThread extends Thread implements Person, BuildingConsumer {
 
         List<Integer> smallestQueueIndicesOnSourceFloor = building.smallestQueueIndicesAtFloor(sourceFloor);
         elevatorIndex = resolveRandomSmallestQueueIndex(smallestQueueIndicesOnSourceFloor);
-        Logger.getInstance().log("Person " + person + " decided to enter queue " + elevatorIndex);
+        Logger.getInstance().log(person + " decided to enter queue " + elevatorIndex);
 
         building.enterQueue(this);
-        Logger.getInstance().log("Person " + person + " entered queue " + elevatorIndex);
+        Logger.getInstance().log(person + " entered queue " + elevatorIndex);
 
         waitForReachingElevator();
-        Logger.getInstance().log("Person " + person + " reached elevator " + elevatorIndex);
+        Logger.getInstance().log(person + " reached elevator " + elevatorIndex);
 
-        building.enterElevator(this);
-        Logger.getInstance().log("Person " + person + " entered elevator " + elevatorIndex);
+        do {
+            waitForReachingElevator();
+        } while (!building.enterElevator(this));
+        Logger.getInstance().log(person + " entered elevator " + elevatorIndex);
 
-        waitForReachingTargetFloor();
-        Logger.getInstance().log("Person " + person + " reached the target floor " + targetFloor);
+        do {
+            waitForReachingTargetFloor();
+        } while (!building.leaveElevator(this));
+        Logger.getInstance().log(person + " reached the target floor " + targetFloor);
 
         building.leaveElevator(this);
     }

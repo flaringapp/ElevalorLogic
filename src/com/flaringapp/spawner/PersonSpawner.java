@@ -62,7 +62,6 @@ public class PersonSpawner {
                 String.valueOf(counter),
                 new Random().nextInt(20) + 60f
         );
-        Logger.getInstance().log("New spawner person created: " + person);
 
         counter++;
 
@@ -73,10 +72,9 @@ public class PersonSpawner {
                 building,
                 from, to
         );
-        Logger.getInstance().log("New spawned person thread created: " + personThread.getName());
-
+        Logger.getInstance().log(person + " spawned. " + from + " -> " + to + "." + "Thread created with name " + personThread.getName());
         personThread.start();
-        Logger.getInstance().log("New person spawned successfully at floor " + from + " which goes to floor " + to + ": " + person);
+        Logger.getInstance().log(person + " started");
     }
 
     private int randomFloorFrom() {

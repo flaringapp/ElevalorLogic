@@ -48,9 +48,8 @@ public class Main {
         List<BuildingFloor> floors = new ArrayList<>();
         for (int i = 0; i < count; i++) {
             BuildingFloor floor = createFloor();
-            Logger.getInstance().log("Created floor " + i + " - " + floor);
-
-            floors.add(createFloor());
+            Logger.getInstance().log("Created floor " + i);
+            floors.add(floor);
         }
         return floors;
     }
@@ -63,7 +62,7 @@ public class Main {
         List<Elevator> elevators = new ArrayList<>();
         for (int i = 0; i < count; i++) {
             ElevatorControllable elevator = createElevator(i);
-            Logger.getInstance().log("Created elevator " + i + " - " + elevator);
+            Logger.getInstance().log(elevator + " created. Index: " + i);
 
             ElevatorThread elevatorThread = createElevatorThread(elevator);
             elevators.add(elevatorThread);

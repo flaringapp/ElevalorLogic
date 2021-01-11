@@ -97,9 +97,11 @@ public class ElevatorImpl implements ElevatorControllable {
     }
 
     @Override
-    public void leave(ElevatorConsumer consumer) {
+    public boolean leave(ElevatorConsumer consumer) {
+        if (!canLeave(consumer)) return false;
         consumers.remove(consumer);
         notifyConsumersChanged();
+        return true;
     }
 
     @Override
@@ -117,6 +119,11 @@ public class ElevatorImpl implements ElevatorControllable {
                 consumer.sourceFloor() == currentFloor &&
                 currentWeight() + consumer.getWeight() <= maxWeight &&
                 currentSize() + 1 <= maxSize;
+    }
+
+    private boolean canLeave(ElevatorConsumer consumer) {
+        return !isOpened &&
+                consumer.destinationFloor() == currentFloor;
     }
 
     private float currentWeight() {

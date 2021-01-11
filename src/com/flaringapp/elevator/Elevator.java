@@ -19,7 +19,7 @@ public interface Elevator {
 
     boolean enter(ElevatorConsumer consumer);
 
-    void leave(ElevatorConsumer consumer);
+    boolean leave(ElevatorConsumer consumer);
 
     Observable<List<ElevatorConsumer>> getConsumersObservable();
 

@@ -10,6 +10,6 @@ public interface Building {
     List<Integer> smallestQueueIndicesAtFloor(int floor);
 
     void enterQueue(BuildingConsumer consumer);
-    void enterElevator(BuildingConsumer consumer);
-    void leaveElevator(BuildingConsumer consumer);
+    boolean enterElevator(BuildingConsumer consumer);
+    boolean leaveElevator(BuildingConsumer consumer);
 }
