@@ -8,7 +8,7 @@ import com.flaringapp.person.PersonThread;
 
 import java.util.Random;
 
-public class UserSpawner {
+public class PersonSpawner {
 
     private static final int DELAY = 5000;
 
@@ -21,7 +21,7 @@ public class UserSpawner {
 
     private int counter = 1;
 
-    public UserSpawner(Building building) {
+    public PersonSpawner(Building building) {
         this.building = building;
     }
 
@@ -30,18 +30,18 @@ public class UserSpawner {
         if (spawnerThread.isAlive()) return;
         spawnerThread.start();
 
-        Logger.getInstance().logTitle("Requested user spawner to start");
+        Logger.getInstance().logTitle("Requested person spawner to start");
     }
 
     public void stopSpawn() {
         isActive = false;
         activeLock.notify();
 
-        Logger.getInstance().logTitle("Requested user spawner to stop");
+        Logger.getInstance().logTitle("Requested person spawner to stop");
     }
 
     private void infiniteSpawning() {
-        Logger.getInstance().logTitle("User spawner started successfully");
+        Logger.getInstance().logTitle("person spawner started successfully");
         synchronized (activeLock) {
             while (isActive) {
                 try {
@@ -52,7 +52,7 @@ public class UserSpawner {
                 executeSpawn();
             }
         }
-        Logger.getInstance().logTitle("User spawner stopped successfully");
+        Logger.getInstance().logTitle("person spawner stopped successfully");
     }
 
     private void executeSpawn() {

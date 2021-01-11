@@ -10,7 +10,7 @@ import com.flaringapp.elevator.strategy.DumbElevatorStrategy;
 import com.flaringapp.floor.Floor;
 import com.flaringapp.floor.FloorImpl;
 import com.flaringapp.logger.Logger;
-import com.flaringapp.spawner.UserSpawner;
+import com.flaringapp.spawner.PersonSpawner;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +27,7 @@ public class Main {
         Building building = createBuilding();
         Logger.getInstance().logTitle("Building created successfully");
 
-        UserSpawner spawner = new UserSpawner(building);
+        PersonSpawner spawner = new PersonSpawner(building);
         spawner.startSpawn();
 
         Logger.getInstance().logTitle("App initialized successfully");
