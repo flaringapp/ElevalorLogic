@@ -3,11 +3,13 @@ package com.flaringapp;
 import com.flaringapp.building.Building;
 import com.flaringapp.building.BuildingImpl;
 import com.flaringapp.elevator.Elevator;
+import com.flaringapp.elevator.ElevatorControllable;
 import com.flaringapp.elevator.ElevatorImpl;
 import com.flaringapp.elevator.ElevatorThread;
 import com.flaringapp.elevator.strategy.DumbElevatorStrategy;
 import com.flaringapp.floor.Floor;
 import com.flaringapp.floor.FloorImpl;
+import com.flaringapp.logger.Logger;
 import com.flaringapp.spawner.UserSpawner;
 
 import java.util.ArrayList;
@@ -20,20 +22,33 @@ public class Main {
     private static final int ELEVATOR_SIZE = 5;
 
     public static void main(String[] args) {
+        Logger.getInstance().logTitle("App started");
+
         Building building = createBuilding();
+        Logger.getInstance().log("Building created successfully");
+
         UserSpawner spawner = new UserSpawner(building);
         spawner.startSpawn();
+
+        Logger.getInstance().logTitle("App initialized successfully");
     }
 
     private static Building createBuilding() {
         List<Floor> floors = createFloors(10);
+        Logger.getInstance().log("Floors created successfully");
+
         List<Elevator> elevators = createElevators(2);
+        Logger.getInstance().log("Elevators created successfully");
+
         return new BuildingImpl(floors, elevators);
     }
 
     private static List<Floor> createFloors(int count) {
         List<Floor> floors = new ArrayList<>();
         for (int i = 0; i < count; i++) {
+            Floor floor = createFloor();
+            Logger.getInstance().log("Created floor " + i + " - " + floor);
+
             floors.add(createFloor());
         }
         return floors;
@@ -44,17 +59,21 @@ public class Main {
     }
 
     private static List<Elevator> createElevators(int count) {
-        List<Elevator> floors = new ArrayList<>();
+        List<Elevator> elevators = new ArrayList<>();
         for (int i = 0; i < count; i++) {
-            floors.add(createElevatorThread());
+            ElevatorControllable elevator = createElevator();
+            Logger.getInstance().log("Created elevator " + i + " - " + elevator);
+
+            ElevatorThread elevatorThread = createElevatorThread(elevator);
+            Logger.getInstance().log("Created elevator thread" + i + " - " + elevatorThread.getName());
+
+            elevators.add(elevatorThread);
         }
-        return floors;
+        return elevators;
     }
 
-    private static ElevatorThread createElevatorThread() {
-        ElevatorThread thread = new ElevatorThread(createElevator());
-        thread.start();
-        return thread;
+    private static ElevatorThread createElevatorThread(ElevatorControllable elevator) {
+        return new ElevatorThread(elevator);
     }
 
     private static ElevatorImpl createElevator() {

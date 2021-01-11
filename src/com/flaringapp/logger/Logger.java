@@ -16,6 +16,10 @@ public final class Logger {
         subject.writeText(message);
     }
 
+    public void logTitle(String message) {
+        subject.writeText("\n" + message);
+    }
+
     public void log(Exception error) {
         subject.writeText(error.getLocalizedMessage());
         subject.writeError(error);
