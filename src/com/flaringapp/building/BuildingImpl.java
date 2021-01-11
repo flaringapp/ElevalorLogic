@@ -50,8 +50,7 @@ public class BuildingImpl implements Building {
                 smallestQueueLength = size;
                 smallestQueueIndices.clear();
                 smallestQueueIndices.add(i);
-            }
-            else if (size == smallestQueueLength) {
+            } else if (size == smallestQueueLength) {
                 smallestQueueIndices.add(i);
             }
         }
@@ -65,10 +64,12 @@ public class BuildingImpl implements Building {
 
         boolean callElevator = floor.enterQueue(consumer);
         consumer.onQueueEntered();
-        
+
         if (callElevator) {
             Elevator elevator = elevators.get(consumer.elevatorIndex());
-            if (!elevator.enter(consumer)) {
+            if (elevator.enter(consumer)) {
+                floor.leaveQueue(consumer);
+            } else {
                 elevators.get(consumer.elevatorIndex())
                         .callAtFloor(consumer.sourceFloor());
             }
