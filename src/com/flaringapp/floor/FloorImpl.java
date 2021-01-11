@@ -9,7 +9,7 @@ public class FloorImpl implements Floor {
     public FloorImpl(int elevatorsCount) {
         List<Queue<QueueConsumer>> queues = new ArrayList<Queue<QueueConsumer>>() {{
             for (int i = 0; i < elevatorsCount; i++) {
-                set(i, new ArrayDeque<>());
+                add(i, new ArrayDeque<>());
             }
         }};
         this.queues = Collections.unmodifiableList(queues);
