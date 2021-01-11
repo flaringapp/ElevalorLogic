@@ -69,7 +69,9 @@ public class PersonThread extends Thread implements Person, PersonLifecycle {
     public void onLeftElevator(Elevator elevator) {
         Logger.getInstance().log("Person " + person + " left elevator " + elevator);
         reachedDestination = true;
-        notify();
+        synchronized (this) {
+            notify();
+        }
     }
 
     private void enterSmallestQueue() {

@@ -17,6 +17,7 @@ public class ElevatorThread extends Thread implements Elevator {
 
     private final Object stateLock = new Object();
 
+    private boolean isWaitingForTask = true;
     private boolean canLeave = true;
 
     public ElevatorThread(ElevatorControllable elevator) {
@@ -31,7 +32,10 @@ public class ElevatorThread extends Thread implements Elevator {
         // TODO end condition
         while (true) {
             Logger.getInstance().log("Elevator " + getName() + " waiting to activate");
-            waitToActivate();
+
+            synchronized (stateLock) {
+                waitToActivate();
+            }
 
             Logger.getInstance().log("Elevator " + getName() + " activated. Resolving floor index to go...");
             while (strategy.hasWhereToGo(this)) {
@@ -101,6 +105,10 @@ public class ElevatorThread extends Thread implements Elevator {
         synchronized (stateLock) {
             Logger.getInstance().log("Elevator " + elevator + " called at floor " + floor);
             elevator.callAtFloor(floor);
+
+            if (isWaitingForTask) {
+                stateLock.notify();
+            }
         }
     }
 
@@ -148,13 +156,15 @@ public class ElevatorThread extends Thread implements Elevator {
 
     private void waitToActivate() {
         synchronized (stateLock) {
-            while (getCalledFloors().isEmpty() && getConsumers().isEmpty()) {
+            while (!elevator.getMovementStrategy().hasWhereToGo(this)) {
+                isWaitingForTask = true;
                 try {
                     stateLock.wait();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
+            isWaitingForTask = false;
         }
     }
 

@@ -6,7 +6,7 @@ public class DumbElevatorStrategy implements ElevatorStrategy {
 
     @Override
     public boolean hasWhereToGo(Elevator elevator) {
-        return !elevator.getConsumers().isEmpty() && !elevator.getCalledFloors().isEmpty();
+        return !elevator.getConsumers().isEmpty() || !elevator.getCalledFloors().isEmpty();
     }
 
     @Override
