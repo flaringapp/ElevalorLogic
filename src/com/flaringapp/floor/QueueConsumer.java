@@ -1,12 +1,12 @@
 package com.flaringapp.floor;
 
-import com.flaringapp.elevator.ElevatorConsumer;
+import com.flaringapp.elevator.Elevator;
 
-public interface QueueConsumer extends ElevatorConsumer {
+public interface QueueConsumer {
 
     int elevatorIndex();
 
-    void onEnteredQueue(int queue);
-    void onLeftQueue(int queue);
+    void onQueueEntered();
+    boolean enterElevator(Elevator elevator);
 
 }

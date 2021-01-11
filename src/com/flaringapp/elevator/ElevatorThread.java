@@ -98,18 +98,23 @@ public class ElevatorThread extends Thread implements Elevator {
 
     private void goToFloor(int floor) {
         synchronized (stateLock) {
-            int distance = floor - elevator.getCurrentFloor();
-            boolean increment = distance < 0;
-            while (distance != 0) {
-                waitForFloorMovement();
-                if (increment) distance++;
-                else distance--;
-                elevator.setCurrentFloor(floor - distance);
-            }
+            performMovement(floor);
 
+            getConsumers().forEach(consumer -> consumer.onElevatorDockedToFloor(this, floor));
             getFloorObservable().notifyObservers(floor);
 
             waitBeforeMoveFurther();
+        }
+    }
+
+    private void performMovement(int floor) {
+        int distance = floor - elevator.getCurrentFloor();
+        boolean increment = distance < 0;
+        while (distance != 0) {
+            waitForFloorMovement();
+            if (increment) distance++;
+            else distance--;
+            elevator.setCurrentFloor(floor - distance);
         }
     }
 

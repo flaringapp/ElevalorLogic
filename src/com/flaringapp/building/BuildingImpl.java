@@ -1,14 +1,12 @@
 package com.flaringapp.building;
 
 import com.flaringapp.elevator.Elevator;
-import com.flaringapp.elevator.ElevatorConsumer;
 import com.flaringapp.floor.Floor;
 import com.flaringapp.floor.QueueConsumer;
 import com.flaringapp.person.PersonInBuilding;
 
 import java.util.List;
 import java.util.Queue;
-import java.util.stream.Collectors;
 
 public class BuildingImpl implements Building {
 
@@ -21,11 +19,11 @@ public class BuildingImpl implements Building {
 
         elevators.forEach(elevator -> {
             elevator.getFloorObservable()
-                    .subscribe(floor -> processElevatorDockedToFloor(elevator));
+                    .subscribe(floor -> fillElevatorWithConsumers(elevator));
 
             elevator.getConsumersObservable()
                     .subscribe(consumers -> {
-                        if (countConsumersInElevatorWithDestination(elevator) == 0) {
+                        if (hasNobodyToLeave(elevator)) {
                             fillElevatorWithConsumers(elevator);
                         }
                     });
@@ -56,46 +54,31 @@ public class BuildingImpl implements Building {
     public void enterQueue(PersonInBuilding person) {
         Floor floor = floors.get(person.sourceFloor());
         boolean callElevator = floor.getQueueAtElevator(person.elevatorIndex()).isEmpty();
+
         floor.enterQueue(person);
-        if (callElevator) elevators.get(person.elevatorIndex()).callAtFloor(person.sourceFloor());
-    }
-
-    private void processElevatorDockedToFloor(Elevator elevator) {
-        if (!kickConsumersFromElevator(elevator)) {
-            fillElevatorWithConsumers(elevator);
-        }
-    }
-
-    private boolean kickConsumersFromElevator(Elevator elevator) {
-        List<ElevatorConsumer> consumersLeaving = consumersInElevatorWithDestination(elevator);
-        if (consumersLeaving.isEmpty()) {
-            return false;
-        } else {
-            consumersLeaving.forEach(elevator::leave);
-            return true;
+        person.onQueueEntered();
+        
+        if (callElevator) {
+            elevators.get(person.elevatorIndex()).callAtFloor(person.sourceFloor());
         }
     }
 
     private void fillElevatorWithConsumers(Elevator elevator) {
         int elevatorIndex = elevators.indexOf(elevator);
+
         Floor floor = floors.get(elevator.getCurrentFloor());
         Queue<QueueConsumer> queue = floor.getQueueAtElevator(elevatorIndex);
 
         while (!queue.isEmpty()) {
             QueueConsumer consumer = queue.peek();
-            if (!elevator.canEnter(consumer)) break;
+            if (!consumer.enterElevator(elevator)) break;
             floor.leaveQueue(consumer);
-            elevator.enter(consumer);
         }
     }
 
-    private int countConsumersInElevatorWithDestination(Elevator elevator) {
-        return consumersInElevatorWithDestination(elevator).size();
+    private boolean hasNobodyToLeave(Elevator elevator) {
+        return elevator.getConsumers().stream()
+                .anyMatch(consumer -> consumer.destinationFloor() == elevator.getCurrentFloor());
     }
 
-    private List<ElevatorConsumer> consumersInElevatorWithDestination(Elevator elevator) {
-        return elevator.getConsumers().stream()
-                .filter(consumer -> consumer.destinationFloor() == elevator.getCurrentFloor())
-                .collect(Collectors.toList());
-    }
 }

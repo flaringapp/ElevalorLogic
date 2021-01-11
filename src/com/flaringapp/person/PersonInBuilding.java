@@ -1,10 +1,10 @@
 package com.flaringapp.person;
 
 import com.flaringapp.elevator.Elevator;
-import com.flaringapp.elevator.ElevatorCallbacks;
+import com.flaringapp.elevator.ElevatorConsumer;
 import com.flaringapp.floor.QueueConsumer;
 
-public class PersonInBuilding implements Person, QueueConsumer {
+public class PersonInBuilding implements Person, QueueConsumer, ElevatorConsumer {
 
     private final Person person;
 
@@ -13,14 +13,20 @@ public class PersonInBuilding implements Person, QueueConsumer {
 
     private final int elevator;
 
-    private final ElevatorCallbacks elevatorCallbacks;
+    private final PersonLifecycle lifecycle;
 
-    public PersonInBuilding(Person person, int initialFloor, int targetFloor, int elevator, ElevatorCallbacks elevatorCallbacks) {
+    public PersonInBuilding(
+            Person person,
+            int initialFloor,
+            int targetFloor,
+            int elevator,
+            PersonLifecycle lifecycle
+    ) {
         this.person = person;
         this.initialFloor = initialFloor;
         this.targetFloor = targetFloor;
         this.elevator = elevator;
-        this.elevatorCallbacks = elevatorCallbacks;
+        this.lifecycle = lifecycle;
     }
 
     @Override
@@ -49,23 +55,26 @@ public class PersonInBuilding implements Person, QueueConsumer {
     }
 
     @Override
-    public void onEnteredQueue(int queue) {
-//        listener.onPersonEnteredQueue(initialFloor, queue);
+    public void onQueueEntered() {
+        lifecycle.onEnteredQueue(elevator);
     }
 
     @Override
-    public void onLeftQueue(int queue) {
-//        listener.onPersonEnteredQueue(initialFloor, queue);
+    public boolean enterElevator(Elevator elevator) {
+        if (elevator.canEnter(this)) {
+            elevator.enter(this);
+            lifecycle.onLeftQueue(this.elevator);
+            lifecycle.onEnteredElevator(elevator);
+            return true;
+        }
+        return false;
     }
 
     @Override
-    public void onElevatorStartedMovement(Elevator elevator) {
-        elevatorCallbacks.onElevatorStartedMovement(elevator);
-    }
-
-    @Override
-    public void onElevatorCompletedMovement(Elevator elevator) {
-        elevator.leave(this);
-        elevatorCallbacks.onElevatorCompletedMovement(elevator);
+    public void onElevatorDockedToFloor(Elevator elevator, int floor) {
+        if (floor == targetFloor) {
+            elevator.leave(this);
+            lifecycle.onLeftElevator(elevator);
+        }
     }
 }

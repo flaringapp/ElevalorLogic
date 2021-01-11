@@ -2,7 +2,6 @@ package com.flaringapp.person;
 
 import com.flaringapp.building.Building;
 import com.flaringapp.elevator.Elevator;
-import com.flaringapp.elevator.ElevatorCallbacks;
 import com.flaringapp.floor.Floor;
 import com.flaringapp.floor.QueueConsumer;
 
@@ -11,7 +10,7 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Random;
 
-public class PersonThread extends Thread implements Person, ElevatorCallbacks {
+public class PersonThread extends Thread implements Person, PersonLifecycle {
 
     private final Person person;
 
@@ -47,11 +46,19 @@ public class PersonThread extends Thread implements Person, ElevatorCallbacks {
     }
 
     @Override
-    public void onElevatorStartedMovement(Elevator elevator) {
+    public void onEnteredQueue(int queue) {
     }
 
     @Override
-    public void onElevatorCompletedMovement(Elevator elevator) {
+    public void onLeftQueue(int queue) {
+    }
+
+    @Override
+    public void onEnteredElevator(Elevator elevator) {
+    }
+
+    @Override
+    public void onLeftElevator(Elevator elevator) {
         reachedDestination = true;
         notify();
     }
