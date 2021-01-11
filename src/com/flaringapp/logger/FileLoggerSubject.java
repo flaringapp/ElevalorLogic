@@ -15,7 +15,7 @@ public class FileLoggerSubject implements LoggerSubject {
     @Override
     public void writeText(String text) {
         try {
-            FileWriter writer = new FileWriter(file);
+            FileWriter writer = new FileWriter(file, true);
             writer.append(text);
             writer.append('\n');
             writer.close();
