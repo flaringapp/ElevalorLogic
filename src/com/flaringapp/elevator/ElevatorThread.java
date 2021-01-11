@@ -148,18 +148,15 @@ public class ElevatorThread extends Thread implements Elevator {
         Logger.getInstance().log("Elevator " + elevator + " reached floor " + floor);
 
         synchronized (accessLock) {
+            elevator.setIsOpened(true);
             elevator.removeCalledFloor(floor);
             getConsumers().forEach(consumer -> consumer.onElevatorDockedToFloor(this, floor));
             getFloorObservable().notifyObservers(floor);
         }
 
-        Logger.getInstance().log("Elevator " + elevator + " waiting for further movement at floor " + floor);
-        waitBeforeMoveFurther();
-
-        synchronized (accessLock) {
-            elevator.setIsOpened(true);
-        }
         Logger.getInstance().log("Elevator " + elevator + " opened doors at floor " + floor);
+
+        waitBeforeMoveFurther();
     }
 
     private void performMovement(int floor) {
