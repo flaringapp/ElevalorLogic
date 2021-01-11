@@ -30,20 +30,21 @@ public class LoggerFileCreator {
         return file;
     }
 
+    private void createFileOrThrow(File file) throws IOException {
+        createDirOrThrow(file.getParentFile());
+        if (!file.exists()) {
+            boolean isCreated = file.createNewFile();
+            if (!isCreated) {
+                throw new IOException("Cannot create logger file with path " + file.getPath());
+            }
+        }
+    }
+
     private void createDirOrThrow(File file) throws IOException {
         if (!file.exists()) {
             boolean isCreated = file.mkdir();
             if (!isCreated) {
                 throw new IOException("Cannot create logger directory with path " + file.getPath());
-            }
-        }
-    }
-
-    private void createFileOrThrow(File file) throws IOException {
-        if (!file.exists()) {
-            boolean isCreated = file.createNewFile();
-            if (!isCreated) {
-                throw new IOException("Cannot create logger file with path " + file.getPath());
             }
         }
     }

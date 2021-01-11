@@ -34,7 +34,7 @@ public final class Logger {
         }
     }
 
-    private final static DateTimeFormatter logFileNameFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
+    private final static DateTimeFormatter logFileNameFormatter = DateTimeFormatter.ofPattern("yyyy_MM_dd");
 
     private static String generateLogFileName() {
         return logFileNameFormatter.format(LocalDateTime.now()) + ".txt";
