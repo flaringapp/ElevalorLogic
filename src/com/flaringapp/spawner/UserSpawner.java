@@ -29,14 +29,19 @@ public class UserSpawner {
         isActive = true;
         if (spawnerThread.isAlive()) return;
         spawnerThread.start();
+
+        Logger.getInstance().logTitle("Requested user spawner to start");
     }
 
     public void stopSpawn() {
         isActive = false;
         activeLock.notify();
+
+        Logger.getInstance().logTitle("Requested user spawner to stop");
     }
 
     private void infiniteSpawning() {
+        Logger.getInstance().logTitle("User spawner started successfully");
         synchronized (activeLock) {
             while (isActive) {
                 try {
@@ -47,6 +52,7 @@ public class UserSpawner {
                 executeSpawn();
             }
         }
+        Logger.getInstance().logTitle("User spawner stopped successfully");
     }
 
     private void executeSpawn() {
