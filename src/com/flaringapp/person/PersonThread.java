@@ -13,15 +13,9 @@ import java.util.Random;
 
 public class PersonThread extends Thread implements Person, ElevatorCallbacks {
 
-    public static final int NO_INDEX = -1;
-
-//    private static final PersonListener emptyListener = new EmptyPersonListener();
-
     private final Person person;
 
     private final Building building;
-
-//    private PersonListener listener = emptyListener;
 
     private final int fromFloor;
     private final int toFloor;
@@ -35,15 +29,8 @@ public class PersonThread extends Thread implements Person, ElevatorCallbacks {
         this.toFloor = toFloor;
     }
 
-//    public void setListener(PersonListener listener) {
-//        if (listener == null) this.listener = emptyListener;
-//        else this.listener = listener;
-//    }
-
     @Override
     public void run() {
-//        listener.onPersonEnteredFloor(fromFloor);
-
         enterSmallestQueue();
 
         waitForReachingTargetFloor();
@@ -61,7 +48,6 @@ public class PersonThread extends Thread implements Person, ElevatorCallbacks {
 
     @Override
     public void onElevatorStartedMovement(Elevator elevator) {
-
     }
 
     @Override
@@ -70,40 +56,12 @@ public class PersonThread extends Thread implements Person, ElevatorCallbacks {
         notify();
     }
 
-    //    @Override
-//    public void onLeftElevator() {
-//        reachedDestination = true;
-//        notify();
-//    }
-//
-//    @Override
-//    public void onPersonEnteredFloor(int floor) {
-//        listener.onPersonEnteredFloor(floor);
-//    }
-//
-//    @Override
-//    public void onPersonEnteredQueue(int floor, int queue) {
-//        listener.onPersonEnteredQueue(floor, queue);
-//    }
-//
-//    @Override
-//    public void onPersonEnteredElevator(int floorIndex, int elevatorIndex) {
-//        listener.onPersonEnteredElevator(floorIndex, elevatorIndex);
-//    }
-//
-//    @Override
-//    public void onPersonLeftElevator(int floorIndex, int elevatorIndex) {
-//        listener.onPersonEnteredElevator(floorIndex, elevatorIndex);
-//    }
-
     private void enterSmallestQueue() {
         Floor floor = building.getFloors().get(fromFloor);
         int smallestQueueIndex = resolveRandomSmallestQueueIndex(floor);
 
         PersonInBuilding personInBuilding = new PersonInBuilding(this, fromFloor, toFloor, smallestQueueIndex, this);
         building.enterQueue(personInBuilding);
-
-//        listener.onPersonEnteredQueue(smallestQueueIndex);
     }
 
     private int resolveRandomSmallestQueueIndex(Floor floor) {
@@ -136,6 +94,5 @@ public class PersonThread extends Thread implements Person, ElevatorCallbacks {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-//        listener.onPersonLeftElevator(toFloor, enteredQueueIndex);
     }
 }
