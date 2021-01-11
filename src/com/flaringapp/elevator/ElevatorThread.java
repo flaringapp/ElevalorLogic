@@ -30,13 +30,14 @@ public class ElevatorThread extends Thread implements Elevator {
         Logger.getInstance().log("Started elevator thread " + getName() + " - " + elevator);
 
         ElevatorStrategy strategy = elevator.getMovementStrategy();
+
+        synchronized (accessLock) {
+            elevator.setIsOpened(true);
+        }
+
         // TODO end condition
         while (true) {
             Logger.getInstance().log("Elevator " + elevator + " waiting to activate");
-
-            synchronized (accessLock) {
-                elevator.setIsOpened(true);
-            }
 
             waitBeforeMoveFurther();
 
