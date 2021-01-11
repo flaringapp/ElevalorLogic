@@ -10,7 +10,7 @@ import java.util.Random;
 
 public class PersonSpawner {
 
-    private static final int DELAY = 5000;
+    private static final int DELAY = 2000;
 
     private final Building building;
 
