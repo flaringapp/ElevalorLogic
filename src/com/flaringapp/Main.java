@@ -65,7 +65,6 @@ public class Main {
             Logger.getInstance().log("Created elevator " + i + " - " + elevator);
 
             ElevatorThread elevatorThread = createElevatorThread(elevator);
-            Logger.getInstance().log("Created elevator thread" + i + " - " + elevatorThread.getName());
 
             elevators.add(elevatorThread);
         }

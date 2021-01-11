@@ -2,6 +2,7 @@ package com.flaringapp.elevator;
 
 
 import com.flaringapp.elevator.strategy.ElevatorStrategy;
+import com.flaringapp.logger.Logger;
 import com.flaringapp.utils.observable.Observable;
 
 import java.util.List;
@@ -24,12 +25,18 @@ public class ElevatorThread extends Thread implements Elevator {
 
     @Override
     public void run() {
+        Logger.getInstance().log("Started elevator thread " + getName() + " - " + elevator);
+
         ElevatorStrategy strategy = elevator.getMovementStrategy();
         // TODO end condition
         while (true) {
+            Logger.getInstance().log("Elevator " + getName() + " waiting to activate");
             waitToActivate();
+
+            Logger.getInstance().log("Elevator " + getName() + " activated. Resolving floor index to go...");
             while (strategy.hasWhereToGo(this)) {
                 int floor = strategy.resolveFloorToGo(this);
+                Logger.getInstance().log("Elevator " + getName() + " goes to floor " + floor);
                 goToFloor(floor);
             }
         }
@@ -92,17 +99,23 @@ public class ElevatorThread extends Thread implements Elevator {
     @Override
     public void callAtFloor(int floor) {
         synchronized (stateLock) {
+            Logger.getInstance().log("Elevator " + elevator + " called at floor " + floor);
             elevator.callAtFloor(floor);
         }
     }
 
     private void goToFloor(int floor) {
         synchronized (stateLock) {
+            Logger.getInstance().log("Elevator " + elevator + " performs movement to floor " + floor);
+
             performMovement(floor);
+
+            Logger.getInstance().log("Elevator " + elevator + " reached floor " + floor);
 
             getConsumers().forEach(consumer -> consumer.onElevatorDockedToFloor(this, floor));
             getFloorObservable().notifyObservers(floor);
 
+            Logger.getInstance().log("Elevator " + elevator + " waiting for further movement " + floor);
             waitBeforeMoveFurther();
         }
     }

@@ -4,6 +4,7 @@ import com.flaringapp.building.Building;
 import com.flaringapp.elevator.Elevator;
 import com.flaringapp.floor.Floor;
 import com.flaringapp.floor.QueueConsumer;
+import com.flaringapp.logger.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,9 +31,13 @@ public class PersonThread extends Thread implements Person, PersonLifecycle {
 
     @Override
     public void run() {
+        Logger.getInstance().log("Started person thread " + getName() + " - " + person);
+
         enterSmallestQueue();
 
+        Logger.getInstance().log("Person " + person + " waiting for reaching the target floor");
         waitForReachingTargetFloor();
+        Logger.getInstance().log("Person " + person + " reached the target floor");
     }
 
     @Override
@@ -47,18 +52,22 @@ public class PersonThread extends Thread implements Person, PersonLifecycle {
 
     @Override
     public void onEnteredQueue(int queue) {
+        Logger.getInstance().log("Person " + person + " entered queue " + queue);
     }
 
     @Override
     public void onLeftQueue(int queue) {
+        Logger.getInstance().log("Person " + person + " left queue " + queue);
     }
 
     @Override
     public void onEnteredElevator(Elevator elevator) {
+        Logger.getInstance().log("Person " + person + " entered elevator " + elevator);
     }
 
     @Override
     public void onLeftElevator(Elevator elevator) {
+        Logger.getInstance().log("Person " + person + " left elevator " + elevator);
         reachedDestination = true;
         notify();
     }
@@ -66,6 +75,8 @@ public class PersonThread extends Thread implements Person, PersonLifecycle {
     private void enterSmallestQueue() {
         Floor floor = building.getFloors().get(fromFloor);
         int smallestQueueIndex = resolveRandomSmallestQueueIndex(floor);
+
+        Logger.getInstance().log("Person " + person + " entering queue " + smallestQueueIndex);
 
         PersonInBuilding personInBuilding = new PersonInBuilding(this, fromFloor, toFloor, smallestQueueIndex, this);
         building.enterQueue(personInBuilding);
