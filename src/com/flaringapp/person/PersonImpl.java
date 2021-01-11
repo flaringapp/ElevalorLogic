@@ -21,4 +21,8 @@ public class PersonImpl implements Person {
         return weight;
     }
 
+    @Override
+    public String toString() {
+        return "Person [" + name + "]";
+    }
 }

@@ -8,4 +8,8 @@ public interface ElevatorControllable extends Elevator {
 
     void setCurrentFloor(int floor);
 
+    void removeCalledFloor(int floor);
+
+    void setIsOpened(boolean isOpened);
+
 }

@@ -10,13 +10,14 @@ public interface Elevator {
     int getCurrentFloor();
     Observable<Integer> getFloorObservable();
 
+    boolean isOpened();
+
     Set<Integer> getCalledFloors();
     void callAtFloor(int floor);
 
     List<ElevatorConsumer> getConsumers();
 
-    boolean canEnter(ElevatorConsumer consumer);
-    void enter(ElevatorConsumer consumer);
+    boolean enter(ElevatorConsumer consumer);
 
     void leave(ElevatorConsumer consumer);
 

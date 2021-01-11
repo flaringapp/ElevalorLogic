@@ -32,17 +32,22 @@ public class ElevatorThread extends Thread implements Elevator {
         ElevatorStrategy strategy = elevator.getMovementStrategy();
         // TODO end condition
         while (true) {
-            Logger.getInstance().log("Elevator " + getName() + " waiting to activate");
+            Logger.getInstance().log("Elevator " + elevator + " waiting to activate");
+
+            synchronized (accessLock) {
+                elevator.setIsOpened(true);
+            }
+
+            waitBeforeMoveFurther();
 
             waitToActivate();
 
-            Logger.getInstance().log("Elevator " + getName() + " activated. Resolving floor index to go...");
+            Logger.getInstance().log("Elevator " + elevator + " activated. Resolving floor index to go...");
 
             synchronized (accessLock) {
                 while (strategy.hasWhereToGo(this)) {
-                    int floor;
-                    floor = strategy.resolveFloorToGo(this);
-                    Logger.getInstance().log("Elevator " + getName() + " goes to floor " + floor);
+                    int floor = strategy.resolveFloorToGo(this);
+                    Logger.getInstance().log("Elevator " + elevator + " goes to floor " + floor);
                     goToFloor(floor);
                 }
             }
@@ -59,6 +64,13 @@ public class ElevatorThread extends Thread implements Elevator {
     @Override
     public Observable<Integer> getFloorObservable() {
         return elevator.getFloorObservable();
+    }
+
+    @Override
+    public boolean isOpened() {
+        synchronized (accessLock) {
+            return elevator.isOpened();
+        }
     }
 
     @Override
@@ -88,17 +100,13 @@ public class ElevatorThread extends Thread implements Elevator {
     }
 
     @Override
-    public boolean canEnter(ElevatorConsumer consumer) {
+    public boolean enter(ElevatorConsumer consumer) {
         synchronized (accessLock) {
-            return elevator.canEnter(consumer);
-        }
-    }
-
-    @Override
-    public void enter(ElevatorConsumer consumer) {
-        synchronized (accessLock) {
-            elevator.enter(consumer);
-            resetMovementDelay();
+            if (elevator.enter(consumer)) {
+                resetMovementDelay();
+                return true;
+            }
+            return false;
         }
     }
 
@@ -130,19 +138,28 @@ public class ElevatorThread extends Thread implements Elevator {
     }
 
     private void goToFloor(int floor) {
+        synchronized (accessLock) {
+            elevator.setIsOpened(false);
+        }
+        Logger.getInstance().log("Elevator " + elevator + " closed the doors at floor " + getCurrentFloor());
+
         Logger.getInstance().log("Elevator " + elevator + " performs movement to floor " + floor);
-
         performMovement(floor);
-
         Logger.getInstance().log("Elevator " + elevator + " reached floor " + floor);
 
         synchronized (accessLock) {
+            elevator.removeCalledFloor(floor);
             getConsumers().forEach(consumer -> consumer.onElevatorDockedToFloor(this, floor));
             getFloorObservable().notifyObservers(floor);
         }
 
-        Logger.getInstance().log("Elevator " + elevator + " waiting for further movement " + floor);
+        Logger.getInstance().log("Elevator " + elevator + " waiting for further movement at floor " + floor);
         waitBeforeMoveFurther();
+
+        synchronized (accessLock) {
+            elevator.setIsOpened(true);
+        }
+        Logger.getInstance().log("Elevator " + elevator + " opened doors at floor " + floor);
     }
 
     private void performMovement(int floor) {

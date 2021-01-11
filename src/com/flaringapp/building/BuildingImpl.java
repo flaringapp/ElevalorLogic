@@ -61,16 +61,17 @@ public class BuildingImpl implements Building {
 
     @Override
     public void enterQueue(BuildingConsumer consumer) {
-        // TODO enter elevator if it is opened on this floor
-
         Floor floor = floors.get(consumer.sourceFloor());
 
         boolean callElevator = floor.enterQueue(consumer);
         consumer.onQueueEntered();
         
         if (callElevator) {
-            elevators.get(consumer.elevatorIndex())
-                    .callAtFloor(consumer.sourceFloor());
+            Elevator elevator = elevators.get(consumer.elevatorIndex());
+            if (!elevator.enter(consumer)) {
+                elevators.get(consumer.elevatorIndex())
+                        .callAtFloor(consumer.sourceFloor());
+            }
         }
     }
 

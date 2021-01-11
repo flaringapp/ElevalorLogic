@@ -62,7 +62,7 @@ public class Main {
     private static List<Elevator> createElevators(int count) {
         List<Elevator> elevators = new ArrayList<>();
         for (int i = 0; i < count; i++) {
-            ElevatorControllable elevator = createElevator();
+            ElevatorControllable elevator = createElevator(i);
             Logger.getInstance().log("Created elevator " + i + " - " + elevator);
 
             ElevatorThread elevatorThread = createElevatorThread(elevator);
@@ -76,7 +76,7 @@ public class Main {
         return new ElevatorThread(elevator);
     }
 
-    private static ElevatorImpl createElevator() {
-        return new ElevatorImpl(ELEVATOR_WEIGHT, ELEVATOR_SIZE, new DumbElevatorStrategy());
+    private static ElevatorImpl createElevator(int index) {
+        return new ElevatorImpl(String.valueOf(index), ELEVATOR_WEIGHT, ELEVATOR_SIZE, new DumbElevatorStrategy());
     }
 }

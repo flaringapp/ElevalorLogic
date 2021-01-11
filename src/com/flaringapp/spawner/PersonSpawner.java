@@ -76,7 +76,7 @@ public class PersonSpawner {
         Logger.getInstance().log("New spawned person thread created: " + personThread.getName());
 
         personThread.start();
-        Logger.getInstance().log("New person spawned successfully: " + person);
+        Logger.getInstance().log("New person spawned successfully at floor " + from + " which goes to floor " + to + ": " + person);
     }
 
     private int randomFloorFrom() {
