@@ -21,9 +21,7 @@ public class BuildingImpl implements Building {
 
         elevators.forEach(elevator -> {
             elevator.getFloorObservable()
-                    .subscribe(floor -> {
-                        kickConsumersFromElevator(elevator);
-                    });
+                    .subscribe(floor -> processElevatorDockedToFloor(elevator));
 
             elevator.getConsumersObservable()
                     .subscribe(consumers -> {
@@ -62,12 +60,19 @@ public class BuildingImpl implements Building {
         if (callElevator) elevators.get(person.elevatorIndex()).callAtFloor(person.sourceFloor());
     }
 
-    private void kickConsumersFromElevator(Elevator elevator) {
+    private void processElevatorDockedToFloor(Elevator elevator) {
+        if (!kickConsumersFromElevator(elevator)) {
+            fillElevatorWithConsumers(elevator);
+        }
+    }
+
+    private boolean kickConsumersFromElevator(Elevator elevator) {
         List<ElevatorConsumer> consumersLeaving = consumersInElevatorWithDestination(elevator);
         if (consumersLeaving.isEmpty()) {
-            fillElevatorWithConsumers(elevator);
+            return false;
         } else {
             consumersLeaving.forEach(elevator::leave);
+            return true;
         }
     }
 
@@ -79,7 +84,7 @@ public class BuildingImpl implements Building {
         while (!queue.isEmpty()) {
             QueueConsumer consumer = queue.peek();
             if (!elevator.canEnter(consumer)) break;
-            queue.poll();
+            floor.leaveQueue(consumer);
             elevator.enter(consumer);
         }
     }

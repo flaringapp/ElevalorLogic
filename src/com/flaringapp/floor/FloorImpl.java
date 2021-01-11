@@ -1,25 +1,23 @@
 package com.flaringapp.floor;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 
 public class FloorImpl implements Floor {
 
     private final List<Queue<QueueConsumer>> queues;
 
     public FloorImpl(int elevatorsCount) {
-        queues = new ArrayList<Queue<QueueConsumer>>() {{
+        List<Queue<QueueConsumer>> queues = new ArrayList<Queue<QueueConsumer>>() {{
             for (int i = 0; i < elevatorsCount; i++) {
                 set(i, new ArrayDeque<>());
             }
         }};
+        this.queues = Collections.unmodifiableList(queues);
     }
 
     @Override
     public synchronized List<Queue<QueueConsumer>> getFloorQueues() {
-        return queues;
+        return Collections.unmodifiableList(queues);
     }
 
     @Override
