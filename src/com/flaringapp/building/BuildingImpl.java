@@ -8,6 +8,7 @@ import com.flaringapp.person.PersonInBuilding;
 
 import java.util.List;
 import java.util.Queue;
+import java.util.stream.Collectors;
 
 public class BuildingImpl implements Building {
 
@@ -17,6 +18,20 @@ public class BuildingImpl implements Building {
     public BuildingImpl(List<Floor> floors, List<Elevator> elevators) {
         this.floors = floors;
         this.elevators = elevators;
+
+        elevators.forEach(elevator -> {
+            elevator.getFloorObservable()
+                    .subscribe(floor -> {
+                        kickConsumersFromElevator(elevator);
+                    });
+
+            elevator.getConsumersObservable()
+                    .subscribe(consumers -> {
+                        if (countConsumersInElevatorWithDestination(elevator) == 0) {
+                            fillElevatorWithConsumers(elevator);
+                        }
+                    });
+        });
     }
 
     @Override
@@ -48,11 +63,12 @@ public class BuildingImpl implements Building {
     }
 
     private void kickConsumersFromElevator(Elevator elevator) {
-        elevator.getConsumers().forEach(consumer -> {
-            if (consumer.destinationFloor() == elevator.getCurrentFloor()) {
-                elevator.leave(consumer);
-            }
-        });
+        List<ElevatorConsumer> consumersLeaving = consumersInElevatorWithDestination(elevator);
+        if (consumersLeaving.isEmpty()) {
+            fillElevatorWithConsumers(elevator);
+        } else {
+            consumersLeaving.forEach(elevator::leave);
+        }
     }
 
     private void fillElevatorWithConsumers(Elevator elevator) {
@@ -68,16 +84,13 @@ public class BuildingImpl implements Building {
         }
     }
 
-    private void leaveQueue(QueueConsumer consumer) {
-        floors.get(consumer.sourceFloor()).leaveQueue(consumer);
+    private int countConsumersInElevatorWithDestination(Elevator elevator) {
+        return consumersInElevatorWithDestination(elevator).size();
     }
 
-    private void enterElevator(ElevatorConsumer consumer, Elevator elevator) {
-        if (elevator.getCurrentFloor() != consumer.sourceFloor()) {
-            throw new IllegalStateException("Consumer " + consumer + " tried to enter elevator at floor" +
-                    consumer.sourceFloor() + " but elevator is currently at floor " + elevator.getCurrentFloor()
-            );
-        }
-        elevator.enter(consumer);
+    private List<ElevatorConsumer> consumersInElevatorWithDestination(Elevator elevator) {
+        return elevator.getConsumers().stream()
+                .filter(consumer -> consumer.destinationFloor() == elevator.getCurrentFloor())
+                .collect(Collectors.toList());
     }
 }

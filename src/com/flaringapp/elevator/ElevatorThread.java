@@ -1,11 +1,13 @@
 package com.flaringapp.elevator;
 
+
+import com.flaringapp.elevator.strategy.ElevatorStrategy;
+import com.flaringapp.utils.observable.Observable;
+
 import java.util.List;
 import java.util.Set;
 
 public class ElevatorThread extends Thread implements Elevator {
-
-//    private static final int DOOR_OPERATION_DURATION = 3000;
 
     private static final int SPEED = 2000;
     private static final int LEAVE_DELAY = 5000;
@@ -22,9 +24,14 @@ public class ElevatorThread extends Thread implements Elevator {
 
     @Override
     public void run() {
+        ElevatorStrategy strategy = elevator.getMovementStrategy();
         // TODO end condition
         while (true) {
             waitToActivate();
+            while (strategy.hasWhereToGo(this)) {
+                int floor = strategy.resolveFloorToGo(this);
+                goToFloor(floor);
+            }
         }
     }
 
@@ -34,14 +41,14 @@ public class ElevatorThread extends Thread implements Elevator {
     }
 
     @Override
+    public Observable<Integer> getFloorObservable() {
+        return elevator.getFloorObservable();
+    }
+
+    @Override
     public List<ElevatorConsumer> getConsumers() {
         return elevator.getConsumers();
     }
-
-//    @Override
-//    public boolean isOpened() {
-//        return elevator.isOpened();
-//    }
 
     @Override
     public boolean canEnter(ElevatorConsumer consumer) {
@@ -51,28 +58,42 @@ public class ElevatorThread extends Thread implements Elevator {
     @Override
     public void enter(ElevatorConsumer consumer) {
         elevator.enter(consumer);
-        resetDelayedMove();
+        resetMovementDelay();
     }
 
     @Override
     public void leave(ElevatorConsumer consumer) {
         elevator.leave(consumer);
-        resetDelayedMove();
+        resetMovementDelay();
+    }
+
+    @Override
+    public Observable<List<ElevatorConsumer>> getConsumersObservable() {
+        return elevator.getConsumersObservable();
+    }
+
+    @Override
+    public boolean isBeingInteracted() {
+        return elevator.isBeingInteracted();
+    }
+
+    @Override
+    public void setIsBeingInteracted(boolean isBeingInteracted) {
+        elevator.setIsBeingInteracted(isBeingInteracted);
     }
 
     @Override
     public Set<Integer> getCalledFloors() {
-        return elevator.getCalledFloors();
+        synchronized (stateLock) {
+            return elevator.getCalledFloors();
+        }
     }
 
     @Override
     public void callAtFloor(int floor) {
-        elevator.callAtFloor(floor);
-    }
-
-    @Override
-    public boolean goesUpstairs() {
-        return elevator.goesUpstairs();
+        synchronized (stateLock) {
+            elevator.callAtFloor(floor);
+        }
     }
 
     private void goToFloor(int floor) {
@@ -86,43 +107,26 @@ public class ElevatorThread extends Thread implements Elevator {
                 elevator.setCurrentFloor(floor - distance);
             }
 
-            moveAfterDelay();
+            getFloorObservable().notifyObservers(floor);
+
+            waitBeforeMoveFurther();
         }
     }
 
-    private void moveAfterDelay() {
+    private void waitBeforeMoveFurther() {
         canLeave = false;
         while (!canLeave) {
             canLeave = true;
             waitForMove();
         }
-
-        // TODO move further
     }
 
-    private void resetDelayedMove() {
+    private void resetMovementDelay() {
         synchronized (stateLock) {
             canLeave = false;
             stateLock.notify();
         }
     }
-
-//    private void openElevatorDoors() {
-//        doorAction(() -> elevator.setOpened(true));
-//    }
-//
-//    private void closeElevatorDoors() {
-//        doorAction(() -> elevator.setOpened(false));
-//    }
-//
-//    private void doorAction(Runnable action) {
-//        try {
-//            sleep(DOOR_OPERATION_DURATION);
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
-//        action.run();
-//    }
 
     private void waitToActivate() {
         synchronized (stateLock) {

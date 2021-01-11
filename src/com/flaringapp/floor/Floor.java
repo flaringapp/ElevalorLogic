@@ -10,7 +10,5 @@ public interface Floor {
     Queue<QueueConsumer> getQueueAtElevator(int elevator);
 
     void enterQueue(QueueConsumer person);
-
     void leaveQueue(QueueConsumer person);
-
 }

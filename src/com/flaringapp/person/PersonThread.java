@@ -100,7 +100,7 @@ public class PersonThread extends Thread implements Person, ElevatorCallbacks {
         Floor floor = building.getFloors().get(fromFloor);
         int smallestQueueIndex = resolveRandomSmallestQueueIndex(floor);
 
-        PersonInBuilding personInBuilding = new PersonInBuilding(person, fromFloor, toFloor, smallestQueueIndex, this);
+        PersonInBuilding personInBuilding = new PersonInBuilding(this, fromFloor, toFloor, smallestQueueIndex, this);
         building.enterQueue(personInBuilding);
 
 //        listener.onPersonEnteredQueue(smallestQueueIndex);

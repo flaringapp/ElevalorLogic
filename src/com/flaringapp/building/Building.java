@@ -15,5 +15,4 @@ public interface Building {
     int elevatorsCount();
 
     void enterQueue(PersonInBuilding person);
-
 }

@@ -1,5 +1,9 @@
 package com.flaringapp.elevator;
 
+import com.flaringapp.elevator.strategy.ElevatorStrategy;
+import com.flaringapp.utils.observable.Observable;
+import com.flaringapp.utils.observable.SimpleObservable;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -9,23 +13,35 @@ public class ElevatorImpl implements ElevatorControllable {
 
     private final float maxWeight;
     private final int maxSize;
+    private final ElevatorStrategy movementStrategy;
 
     private int currentFloor;
+
+    private final Observable<Integer> floorObservable = new SimpleObservable<>();
 
     private final Set<Integer> calledFloors = new TreeSet<>();
 
     private final List<ElevatorConsumer> consumers = new ArrayList<>();
 
-    private boolean goesUpstairs = false;
+    private final Observable<List<ElevatorConsumer>> consumersObservable = new SimpleObservable<>();
 
-    public ElevatorImpl(float maxWeight, int maxSize) {
-        this(maxWeight, maxSize, 1);
+
+    private boolean isBeingInteracted = false;
+
+    public ElevatorImpl(float maxWeight, int maxSize, ElevatorStrategy strategy) {
+        this(maxWeight, maxSize, strategy, 1);
     }
 
-    public ElevatorImpl(float maxWeight, int maxSize, int currentFloor) {
+    public ElevatorImpl(float maxWeight, int maxSize, ElevatorStrategy strategy, int currentFloor) {
         this.maxWeight = maxWeight;
         this.maxSize = maxSize;
+        this.movementStrategy = strategy;
         this.currentFloor = currentFloor;
+    }
+
+    @Override
+    public ElevatorStrategy getMovementStrategy() {
+        return movementStrategy;
     }
 
     @Override
@@ -38,11 +54,10 @@ public class ElevatorImpl implements ElevatorControllable {
         currentFloor = floor;
     }
 
-//    @Override
-//    public void setOpened(boolean isOpened) {
-//        this.isOpened = isOpened;
-//    }
-
+    @Override
+    public Observable<Integer> getFloorObservable() {
+        return floorObservable;
+    }
 
     public Set<Integer> getCalledFloors() {
         return calledFloors;
@@ -60,15 +75,13 @@ public class ElevatorImpl implements ElevatorControllable {
 
     @Override
     public boolean canEnter(ElevatorConsumer consumer) {
-        return currentWeight() + consumer.getWeight() <= maxWeight &&
+        return consumer.sourceFloor() == currentFloor &&
+                currentWeight() + consumer.getWeight() <= maxWeight &&
                 currentSize() + 1 <= maxSize;
     }
 
     @Override
     public void enter(ElevatorConsumer consumer) {
-//        if (!isOpened) {
-//            throw new IllegalStateException("Consumer " + consumer + " tried to use a closed elevator!");
-//        }
         if (!canEnter(consumer)) {
             throw new IllegalStateException("Consumer " + consumer + " cannot use elevator!");
         }
@@ -76,21 +89,28 @@ public class ElevatorImpl implements ElevatorControllable {
             throw new IllegalStateException("Consumer " + consumer + "already uses this elevator!");
         }
         consumers.add(consumer);
+        consumersObservable.notifyObservers(consumers);
     }
 
     @Override
     public void leave(ElevatorConsumer consumer) {
         consumers.remove(consumer);
+        consumersObservable.notifyObservers(consumers);
     }
 
     @Override
-    public boolean goesUpstairs() {
-        return goesUpstairs;
+    public Observable<List<ElevatorConsumer>> getConsumersObservable() {
+        return consumersObservable;
     }
 
     @Override
-    public void setGoesUpstairs(boolean goesUpstairs) {
-        this.goesUpstairs = goesUpstairs;
+    public boolean isBeingInteracted() {
+        return isBeingInteracted;
+    }
+
+    @Override
+    public void setIsBeingInteracted(boolean isBeingInteracted) {
+        this.isBeingInteracted = isBeingInteracted;
     }
 
     private float currentWeight() {

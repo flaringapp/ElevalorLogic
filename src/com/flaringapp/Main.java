@@ -5,6 +5,7 @@ import com.flaringapp.building.BuildingImpl;
 import com.flaringapp.elevator.Elevator;
 import com.flaringapp.elevator.ElevatorImpl;
 import com.flaringapp.elevator.ElevatorThread;
+import com.flaringapp.elevator.strategy.DumbElevatorStrategy;
 import com.flaringapp.floor.Floor;
 import com.flaringapp.floor.FloorImpl;
 import com.flaringapp.spawner.UserSpawner;
@@ -57,6 +58,6 @@ public class Main {
     }
 
     private static ElevatorImpl createElevator() {
-        return new ElevatorImpl(ELEVATOR_WEIGHT, ELEVATOR_SIZE);
+        return new ElevatorImpl(ELEVATOR_WEIGHT, ELEVATOR_SIZE, new DumbElevatorStrategy());
     }
 }

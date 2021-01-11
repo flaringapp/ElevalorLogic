@@ -1,11 +1,11 @@
 package com.flaringapp.elevator;
 
+import com.flaringapp.elevator.strategy.ElevatorStrategy;
+
 public interface ElevatorControllable extends Elevator {
 
-//    void setOpened(boolean isOpened);
+    ElevatorStrategy getMovementStrategy();
 
     void setCurrentFloor(int floor);
-
-    void setGoesUpstairs(boolean goesUpstairs);
 
 }
