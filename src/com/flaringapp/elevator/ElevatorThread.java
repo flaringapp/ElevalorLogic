@@ -10,8 +10,8 @@ import java.util.Set;
 
 public class ElevatorThread extends Thread implements Elevator {
 
-    private static final int SPEED = 2000;
-    private static final int LEAVE_DELAY = 5000;
+    private static final int SPEED = 1000;
+    private static final int LEAVE_DELAY = 2000;
 
     private final ElevatorControllable elevator;
 
@@ -19,7 +19,7 @@ public class ElevatorThread extends Thread implements Elevator {
     private final Object movementLock = new Object();
 
     private boolean isWaitingForTask = true;
-    private boolean canLeave = false;
+    private boolean canMoveFurther = false;
 
     public ElevatorThread(ElevatorControllable elevator) {
         this.elevator = elevator;
@@ -29,29 +29,19 @@ public class ElevatorThread extends Thread implements Elevator {
     public void run() {
         Logger.getInstance().log("Started elevator thread " + getName() + " - " + elevator);
 
-        ElevatorStrategy strategy = elevator.getMovementStrategy();
-
         synchronized (accessLock) {
-            elevator.setIsOpened(true);
+            elevator.setOpened(true);
         }
 
         // TODO end condition
         while (true) {
             Logger.getInstance().log(elevator + " waiting to activate");
 
-            waitBeforeMoveFurther();
-
             waitToActivate();
 
             Logger.getInstance().log(elevator + " activated. Resolving floor index to go...");
 
-            synchronized (accessLock) {
-                while (strategy.hasWhereToGo(this)) {
-                    int floor = strategy.resolveFloorToGo(this);
-                    Logger.getInstance().log(elevator + " goes to floor " + floor);
-                    goToFloor(floor);
-                }
-            }
+            executeOrders();
         }
     }
 
@@ -82,14 +72,16 @@ public class ElevatorThread extends Thread implements Elevator {
     }
 
     @Override
-    public void callAtFloor(int floor) {
+    public boolean callAtFloor(int floor) {
         synchronized (accessLock) {
             Logger.getInstance().log(elevator + " called at floor " + floor);
-            elevator.callAtFloor(floor);
-
-            if (isWaitingForTask) {
-                accessLock.notify();
+            if (elevator.callAtFloor(floor)) {
+                if (isWaitingForTask) {
+                    accessLock.notify();
+                }
+                return true;
             }
+            return false;
         }
     }
 
@@ -141,42 +133,65 @@ public class ElevatorThread extends Thread implements Elevator {
         }
     }
 
-    private void goToFloor(int floor) {
+    private void executeOrders() {
+        ElevatorStrategy strategy = elevator.getMovementStrategy();
+
+        boolean hasWhereToGo;
+        int floor = -10;
         synchronized (accessLock) {
-            elevator.setIsOpened(false);
+            hasWhereToGo = strategy.hasWhereToGo(elevator);
+            if (hasWhereToGo) {
+                floor = strategy.resolveFloorToGo(elevator);
+            }
         }
+
+        while (hasWhereToGo) {
+            Logger.getInstance().log(elevator + " goes to floor " + floor);
+
+            synchronized (accessLock) {
+                goToFloor(floor);
+            }
+
+            waitBeforeMoveFurther();
+
+            synchronized (accessLock) {
+                hasWhereToGo = strategy.hasWhereToGo(elevator);
+                if (hasWhereToGo) {
+                    floor = strategy.resolveFloorToGo(elevator);
+                }
+            }
+        }
+    }
+
+    private void goToFloor(int floor) {
+        elevator.setOpened(false);
+
         Logger.getInstance().log(elevator + " closed the doors at floor " + getCurrentFloor());
 
         Logger.getInstance().log(elevator + " performs movement to floor " + floor);
         performMovement(floor);
         Logger.getInstance().log(elevator + " reached floor " + floor);
 
-        synchronized (accessLock) {
-            elevator.setIsOpened(true);
-            elevator.removeCalledFloor(floor);
-            getConsumers().forEach(consumer -> consumer.onElevatorDockedToFloor(this, floor));
-            getFloorObservable().notifyObservers(floor);
-        }
+        elevator.setOpened(true);
+        elevator.removeCalledFloor(floor);
+
+        canMoveFurther = false;
+
+        getConsumers().forEach(consumer -> consumer.onElevatorDockedToFloor(this, floor));
+
+        getFloorObservable().notifyObservers(floor);
 
         Logger.getInstance().log(elevator + " opened doors at floor " + floor);
-
-        waitBeforeMoveFurther();
     }
 
     private void performMovement(int floor) {
-        int distance;
-        synchronized (accessLock) {
-            distance = floor - elevator.getCurrentFloor();
-        }
+        int distance = floor - elevator.getCurrentFloor();
         boolean increment = distance < 0;
         while (distance != 0) {
             moveToNextFloor();
             if (increment) distance++;
             else distance--;
-
-            synchronized (accessLock) {
-                elevator.setCurrentFloor(floor - distance);
-            }
+            elevator.setCurrentFloor(floor - distance);
         }
     }
 
@@ -192,27 +207,20 @@ public class ElevatorThread extends Thread implements Elevator {
 
     private void waitBeforeMoveFurther() {
         synchronized (movementLock) {
-            canLeave = false;
-            while (!canLeave) {
-                canLeave = true;
-                waitBeforeStartMovement();
-            }
-        }
-    }
-
-    private void waitBeforeStartMovement() {
-        synchronized (movementLock) {
-            try {
-                movementLock.wait(LEAVE_DELAY);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            while (!canMoveFurther) {
+                canMoveFurther = true;
+                try {
+                    movementLock.wait(LEAVE_DELAY);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
 
     private void resetMovementDelay() {
         synchronized (movementLock) {
-            canLeave = false;
+            canMoveFurther = false;
             movementLock.notify();
         }
     }

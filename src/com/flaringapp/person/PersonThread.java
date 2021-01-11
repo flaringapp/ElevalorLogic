@@ -11,7 +11,6 @@ import java.util.Random;
 public class PersonThread extends Thread implements Person, BuildingConsumer {
 
     private static final int NO_INDEX = -1;
-
     private final Person person;
 
     private final Building building;
@@ -21,7 +20,9 @@ public class PersonThread extends Thread implements Person, BuildingConsumer {
 
     private int elevatorIndex = NO_INDEX;
 
-    private boolean reachedElevator = false;
+    private final Object queueLock = new Object();
+    private final Object elevatorLock = new Object();
+    private boolean reachedQueueHead = false;
     private boolean reachedDestination = false;
 
     public PersonThread(Person person, Building building, int sourceFloor, int targetFloor) {
@@ -42,9 +43,6 @@ public class PersonThread extends Thread implements Person, BuildingConsumer {
         building.enterQueue(this);
         Logger.getInstance().log(person + " entered queue " + elevatorIndex);
 
-        waitForReachingElevator();
-        Logger.getInstance().log(person + " reached elevator " + elevatorIndex);
-
         do {
             waitForReachingElevator();
         } while (!building.enterElevator(this));
@@ -56,6 +54,8 @@ public class PersonThread extends Thread implements Person, BuildingConsumer {
         Logger.getInstance().log(person + " reached the target floor " + targetFloor);
 
         building.leaveElevator(this);
+
+        Logger.getInstance().log("");
     }
 
     @Override
@@ -78,7 +78,7 @@ public class PersonThread extends Thread implements Person, BuildingConsumer {
     }
 
     @Override
-    public void onElevatorAvailableToEnter() {
+    public void onAvailableToEnterElevator() {
         handleReachedElevator();
     }
 
@@ -104,35 +104,43 @@ public class PersonThread extends Thread implements Person, BuildingConsumer {
         return smallestQueueIndices.get(randomIndexOfSmallestQueues);
     }
 
-    private synchronized void waitForReachingElevator() {
-        reachedElevator = false;
-        try {
-            while (!reachedElevator) {
-                wait();
+    private void waitForReachingElevator() {
+        synchronized (queueLock) {
+            try {
+                while (!reachedQueueHead) {
+                    queueLock.wait();
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        }
+        reachedQueueHead = false;
+    }
+
+    private void handleReachedElevator() {
+        synchronized (queueLock) {
+            reachedQueueHead = true;
+            queueLock.notify();
         }
     }
 
-    private synchronized void handleReachedElevator() {
-        reachedElevator = true;
-        notify();
-    }
-
-    private synchronized void waitForReachingTargetFloor() {
-        reachedDestination = false;
-        try {
-            while (!reachedDestination) {
-                wait();
+    private void waitForReachingTargetFloor() {
+        synchronized (elevatorLock) {
+            try {
+                while (!reachedDestination) {
+                    elevatorLock.wait();
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+            reachedDestination = false;
         }
     }
 
-    private synchronized void handleReachedTargetFloor() {
-        reachedDestination = true;
-        notify();
+    private void handleReachedTargetFloor() {
+        synchronized (elevatorLock) {
+            reachedDestination = true;
+            elevatorLock.notify();
+        }
     }
 }

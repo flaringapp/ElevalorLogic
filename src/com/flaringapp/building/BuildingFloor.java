@@ -1,9 +1,10 @@
 package com.flaringapp.building;
 
 import com.flaringapp.floor.Floor;
+import com.flaringapp.floor.QueueConsumer;
 
 public interface BuildingFloor extends Floor {
 
-    void notifyHeadConsumerCanEnterElevator(int elevator);
+    QueueConsumer getQueueHead(int elevator);
 
 }

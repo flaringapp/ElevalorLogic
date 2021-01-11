@@ -65,7 +65,7 @@ public class ElevatorImpl implements ElevatorControllable {
     }
 
     @Override
-    public void setIsOpened(boolean isOpened) {
+    public void setOpened(boolean isOpened) {
         this.isOpened = isOpened;
     }
 
@@ -74,8 +74,10 @@ public class ElevatorImpl implements ElevatorControllable {
     }
 
     @Override
-    public void callAtFloor(int floor) {
+    public boolean callAtFloor(int floor) {
+        if (currentFloor == floor && isOpened) return false;
         calledFloors.add(floor);
+        return true;
     }
 
     @Override
@@ -122,7 +124,7 @@ public class ElevatorImpl implements ElevatorControllable {
     }
 
     private boolean canLeave(ElevatorConsumer consumer) {
-        return !isOpened &&
+        return isOpened &&
                 consumer.destinationFloor() == currentFloor;
     }
 

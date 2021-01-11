@@ -10,7 +10,7 @@ import java.util.Random;
 
 public class PersonSpawner {
 
-    private static final int DELAY = 2000;
+    private static final int DELAY = 10000;
 
     private final Building building;
 
@@ -74,7 +74,6 @@ public class PersonSpawner {
         );
         Logger.getInstance().log(person + " spawned. " + from + " -> " + to + "." + "Thread created with name " + personThread.getName());
         personThread.start();
-        Logger.getInstance().log(person + " started");
     }
 
     private int randomFloorFrom() {
@@ -86,6 +85,6 @@ public class PersonSpawner {
         if (to != from) return to;
 
         if (to == building.floorsCount() - 1) return to - 1;
-        else return from - 1;
+        else return to + 1;
     }
 }

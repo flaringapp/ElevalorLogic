@@ -2,6 +2,7 @@ package com.flaringapp.building;
 
 import com.flaringapp.elevator.Elevator;
 import com.flaringapp.floor.Floor;
+import com.flaringapp.floor.QueueConsumer;
 import com.flaringapp.logger.Logger;
 
 import java.util.ArrayList;
@@ -18,12 +19,16 @@ public class BuildingImpl implements Building {
 
         elevators.forEach(elevator -> {
             elevator.getFloorObservable()
-                    .subscribe(floor -> fillElevatorWithConsumers(elevator));
+                    .subscribe(floor -> {
+                        if (hasNobodyToLeave(elevator)) {
+                            enterFirstConsumerInQueue(elevator);
+                        }
+                    });
 
             elevator.getConsumersObservable()
                     .subscribe(consumers -> {
                         if (hasNobodyToLeave(elevator)) {
-                            fillElevatorWithConsumers(elevator);
+                            enterFirstConsumerInQueue(elevator);
                         }
                     });
         });
@@ -70,13 +75,10 @@ public class BuildingImpl implements Building {
 
         if (callElevator) {
             Elevator elevator = elevators.get(consumer.elevatorIndex());
-            if (elevator.enter(consumer)) {
-                floor.leaveQueue(consumer);
-                Logger.getInstance().log(consumer + " instantly left queue and entered " + elevator + " at floor " + consumer.sourceFloor());
-            } else {
-                elevators.get(consumer.elevatorIndex())
-                        .callAtFloor(consumer.sourceFloor());
+            if (elevator.callAtFloor(consumer.sourceFloor())) {
                 Logger.getInstance().log(consumer + " called " + elevator + " at floor " + consumer.sourceFloor());
+            } else {
+                consumer.onAvailableToEnterElevator();
             }
         }
     }
@@ -93,15 +95,19 @@ public class BuildingImpl implements Building {
         return elevators.get(consumer.elevatorIndex()).leave(consumer);
     }
 
-    private void fillElevatorWithConsumers(Elevator elevator) {
+    private void enterFirstConsumerInQueue(Elevator elevator) {
         BuildingFloor floor = floors.get(elevator.getCurrentFloor());
         int elevatorIndex = elevators.indexOf(elevator);
-        floor.notifyHeadConsumerCanEnterElevator(elevatorIndex);
+
+        QueueConsumer firstInQueue = floor.getQueueHead(elevatorIndex);
+        if (firstInQueue != null) {
+            firstInQueue.onAvailableToEnterElevator();
+        }
     }
 
     private boolean hasNobodyToLeave(Elevator elevator) {
         return elevator.getConsumers().stream()
-                .anyMatch(consumer -> consumer.destinationFloor() == elevator.getCurrentFloor());
+                .noneMatch(consumer -> consumer.destinationFloor() == elevator.getCurrentFloor());
     }
 
 

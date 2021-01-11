@@ -17,8 +17,8 @@ import java.util.List;
 
 public class Main {
 
-    private static final int FLOORS_COUNT = 10;
-    private static final int ELEVATORS_COUNT = 4;
+    private static final int FLOORS_COUNT = 4;
+    private static final int ELEVATORS_COUNT = 1;
     private static final float ELEVATOR_WEIGHT = 600f;
     private static final int ELEVATOR_SIZE = 5;
 

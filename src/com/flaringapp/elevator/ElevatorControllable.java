@@ -10,6 +10,6 @@ public interface ElevatorControllable extends Elevator {
 
     void removeCalledFloor(int floor);
 
-    void setIsOpened(boolean isOpened);
+    void setOpened(boolean isOpened);
 
 }
