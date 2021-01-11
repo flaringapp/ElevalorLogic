@@ -4,6 +4,6 @@ import com.flaringapp.floor.Floor;
 
 public interface BuildingFloor extends Floor {
 
-    void notifyHeadConsumerQueueCompleted(int elevator);
+    void notifyHeadConsumerCanEnterElevator(int elevator);
 
 }

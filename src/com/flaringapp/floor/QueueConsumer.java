@@ -6,6 +6,6 @@ public interface QueueConsumer {
 
     void onQueueEntered();
 
-    void onQueueCompleted();
+    void onElevatorAvailableToEnter();
 
 }

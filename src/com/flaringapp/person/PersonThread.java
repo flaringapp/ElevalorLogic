@@ -78,7 +78,7 @@ public class PersonThread extends Thread implements Person, BuildingConsumer {
     }
 
     @Override
-    public void onQueueCompleted() {
+    public void onElevatorAvailableToEnter() {
         handleReachedElevator();
     }
 
@@ -105,6 +105,7 @@ public class PersonThread extends Thread implements Person, BuildingConsumer {
     }
 
     private synchronized void waitForReachingElevator() {
+        reachedElevator = false;
         try {
             while (!reachedElevator) {
                 wait();
@@ -120,6 +121,7 @@ public class PersonThread extends Thread implements Person, BuildingConsumer {
     }
 
     private synchronized void waitForReachingTargetFloor() {
+        reachedDestination = false;
         try {
             while (!reachedDestination) {
                 wait();

@@ -49,11 +49,11 @@ public class FloorImpl implements BuildingFloor {
     }
 
     @Override
-    public void notifyHeadConsumerQueueCompleted(int elevator) {
+    public void notifyHeadConsumerCanEnterElevator(int elevator) {
         Queue<QueueConsumer> queue = queues.get(elevator);
         synchronized (queue) {
             if (!queue.isEmpty()) {
-                queue.peek().onQueueCompleted();
+                queue.peek().onElevatorAvailableToEnter();
             }
         }
     }

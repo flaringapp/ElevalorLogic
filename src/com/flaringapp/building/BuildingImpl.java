@@ -96,7 +96,7 @@ public class BuildingImpl implements Building {
     private void fillElevatorWithConsumers(Elevator elevator) {
         BuildingFloor floor = floors.get(elevator.getCurrentFloor());
         int elevatorIndex = elevators.indexOf(elevator);
-        floor.notifyHeadConsumerQueueCompleted(elevatorIndex);
+        floor.notifyHeadConsumerCanEnterElevator(elevatorIndex);
     }
 
     private boolean hasNobodyToLeave(Elevator elevator) {
