@@ -17,6 +17,7 @@ import java.util.List;
 
 public class Main {
 
+    private static final int FLOORS_COUNT = 10;
     private static final int ELEVATORS_COUNT = 4;
     private static final float ELEVATOR_WEIGHT = 600f;
     private static final int ELEVATOR_SIZE = 5;
@@ -34,10 +35,10 @@ public class Main {
     }
 
     private static Building createBuilding() {
-        List<Floor> floors = createFloors(10);
+        List<Floor> floors = createFloors(FLOORS_COUNT);
         Logger.getInstance().log("Floors created successfully");
 
-        List<Elevator> elevators = createElevators(2);
+        List<Elevator> elevators = createElevators(ELEVATORS_COUNT);
         Logger.getInstance().log("Elevators created successfully");
 
         return new BuildingImpl(floors, elevators);
