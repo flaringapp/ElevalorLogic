@@ -4,10 +4,7 @@ import com.flaringapp.elevator.strategy.ElevatorStrategy;
 import com.flaringapp.utils.observable.Observable;
 import com.flaringapp.utils.observable.SimpleObservable;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 public class ElevatorImpl implements ElevatorControllable {
 
@@ -24,9 +21,6 @@ public class ElevatorImpl implements ElevatorControllable {
     private final List<ElevatorConsumer> consumers = new ArrayList<>();
 
     private final Observable<List<ElevatorConsumer>> consumersObservable = new SimpleObservable<>();
-
-
-    private boolean isBeingInteracted = false;
 
     public ElevatorImpl(float maxWeight, int maxSize, ElevatorStrategy strategy) {
         this(maxWeight, maxSize, strategy, 1);
@@ -89,28 +83,18 @@ public class ElevatorImpl implements ElevatorControllable {
             throw new IllegalStateException("Consumer " + consumer + "already uses this elevator!");
         }
         consumers.add(consumer);
-        consumersObservable.notifyObservers(consumers);
+        notifyConsumersChanged();
     }
 
     @Override
     public void leave(ElevatorConsumer consumer) {
         consumers.remove(consumer);
-        consumersObservable.notifyObservers(consumers);
+        notifyConsumersChanged();
     }
 
     @Override
     public Observable<List<ElevatorConsumer>> getConsumersObservable() {
         return consumersObservable;
-    }
-
-    @Override
-    public boolean isBeingInteracted() {
-        return isBeingInteracted;
-    }
-
-    @Override
-    public void setIsBeingInteracted(boolean isBeingInteracted) {
-        this.isBeingInteracted = isBeingInteracted;
     }
 
     private float currentWeight() {
@@ -121,5 +105,9 @@ public class ElevatorImpl implements ElevatorControllable {
 
     private float currentSize() {
         return consumers.size();
+    }
+
+    private void notifyConsumersChanged() {
+        consumersObservable.notifyObservers(Collections.unmodifiableList(consumers));
     }
 }

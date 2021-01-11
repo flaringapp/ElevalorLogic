@@ -1,13 +1,13 @@
 package com.flaringapp;
 
 import com.flaringapp.building.Building;
+import com.flaringapp.building.BuildingFloor;
 import com.flaringapp.building.BuildingImpl;
 import com.flaringapp.elevator.Elevator;
 import com.flaringapp.elevator.ElevatorControllable;
 import com.flaringapp.elevator.ElevatorImpl;
 import com.flaringapp.elevator.ElevatorThread;
 import com.flaringapp.elevator.strategy.DumbElevatorStrategy;
-import com.flaringapp.floor.Floor;
 import com.flaringapp.floor.FloorImpl;
 import com.flaringapp.logger.Logger;
 import com.flaringapp.spawner.PersonSpawner;
@@ -35,7 +35,7 @@ public class Main {
     }
 
     private static Building createBuilding() {
-        List<Floor> floors = createFloors(FLOORS_COUNT);
+        List<BuildingFloor> floors = createFloors(FLOORS_COUNT);
         Logger.getInstance().log("Floors created successfully");
 
         List<Elevator> elevators = createElevators(ELEVATORS_COUNT);
@@ -44,10 +44,10 @@ public class Main {
         return new BuildingImpl(floors, elevators);
     }
 
-    private static List<Floor> createFloors(int count) {
-        List<Floor> floors = new ArrayList<>();
+    private static List<BuildingFloor> createFloors(int count) {
+        List<BuildingFloor> floors = new ArrayList<>();
         for (int i = 0; i < count; i++) {
-            Floor floor = createFloor();
+            BuildingFloor floor = createFloor();
             Logger.getInstance().log("Created floor " + i + " - " + floor);
 
             floors.add(createFloor());
@@ -55,7 +55,7 @@ public class Main {
         return floors;
     }
 
-    private static Floor createFloor() {
+    private static FloorImpl createFloor() {
         return new FloorImpl(ELEVATORS_COUNT);
     }
 

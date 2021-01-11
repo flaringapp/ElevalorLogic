@@ -1,43 +1,57 @@
 package com.flaringapp.person;
 
 import com.flaringapp.building.Building;
+import com.flaringapp.building.BuildingConsumer;
 import com.flaringapp.elevator.Elevator;
-import com.flaringapp.floor.Floor;
-import com.flaringapp.floor.QueueConsumer;
 import com.flaringapp.logger.Logger;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Queue;
 import java.util.Random;
 
-public class PersonThread extends Thread implements Person, PersonLifecycle {
+public class PersonThread extends Thread implements Person, BuildingConsumer {
+
+    private static final int NO_INDEX = -1;
 
     private final Person person;
 
     private final Building building;
 
-    private final int fromFloor;
-    private final int toFloor;
+    private final int sourceFloor;
+    private final int targetFloor;
 
+    private int elevatorIndex = NO_INDEX;
+
+    private boolean reachedElevator = false;
     private boolean reachedDestination = false;
 
-    public PersonThread(Person person, Building building, int fromFloor, int toFloor) {
+    public PersonThread(Person person, Building building, int sourceFloor, int targetFloor) {
         this.person = person;
         this.building = building;
-        this.fromFloor = fromFloor;
-        this.toFloor = toFloor;
+        this.sourceFloor = sourceFloor;
+        this.targetFloor = targetFloor;
     }
 
     @Override
     public void run() {
         Logger.getInstance().log("Started person thread " + getName() + " - " + person);
 
-        enterSmallestQueue();
+        List<Integer> smallestQueueIndicesOnSourceFloor = building.smallestQueueIndicesAtFloor(sourceFloor);
+        elevatorIndex = resolveRandomSmallestQueueIndex(smallestQueueIndicesOnSourceFloor);
+        Logger.getInstance().log("Person " + person + " decided to enter queue " + elevatorIndex);
 
-        Logger.getInstance().log("Person " + person + " waiting for reaching the target floor");
+        building.enterQueue(this);
+        Logger.getInstance().log("Person " + person + " entered queue " + elevatorIndex);
+
+        waitForReachingElevator();
+        Logger.getInstance().log("Person " + person + " reached elevator " + elevatorIndex);
+
+        building.enterElevator(this);
+        Logger.getInstance().log("Person " + person + " entered elevator " + elevatorIndex);
+
         waitForReachingTargetFloor();
-        Logger.getInstance().log("Person " + person + " reached the target floor");
+        Logger.getInstance().log("Person " + person + " reached the target floor " + targetFloor);
+
+        building.leaveElevator(this);
     }
 
     @Override
@@ -51,59 +65,54 @@ public class PersonThread extends Thread implements Person, PersonLifecycle {
     }
 
     @Override
-    public void onEnteredQueue(int queue) {
-        Logger.getInstance().log("Person " + person + " entered queue " + queue);
+    public int elevatorIndex() {
+        return elevatorIndex;
     }
 
     @Override
-    public void onLeftQueue(int queue) {
-        Logger.getInstance().log("Person " + person + " left queue " + queue);
+    public void onQueueEntered() {
     }
 
     @Override
-    public void onEnteredElevator(Elevator elevator) {
-        Logger.getInstance().log("Person " + person + " entered elevator " + elevator);
+    public void onQueueCompleted() {
+        handleReachedElevator();
     }
 
     @Override
-    public void onLeftElevator(Elevator elevator) {
-        Logger.getInstance().log("Person " + person + " left elevator " + elevator);
-        reachedDestination = true;
-        synchronized (this) {
-            notify();
+    public int sourceFloor() {
+        return sourceFloor;
+    }
+
+    @Override
+    public int destinationFloor() {
+        return targetFloor;
+    }
+
+    @Override
+    public void onElevatorDockedToFloor(Elevator elevator, int floor) {
+        if (floor == targetFloor) {
+            handleReachedTargetFloor();
         }
     }
 
-    private void enterSmallestQueue() {
-        Floor floor = building.getFloors().get(fromFloor);
-        int smallestQueueIndex = resolveRandomSmallestQueueIndex(floor);
-
-        Logger.getInstance().log("Person " + person + " entering queue " + smallestQueueIndex);
-
-        PersonInBuilding personInBuilding = new PersonInBuilding(this, fromFloor, toFloor, smallestQueueIndex, this);
-        building.enterQueue(personInBuilding);
-    }
-
-    private int resolveRandomSmallestQueueIndex(Floor floor) {
-        List<Queue<QueueConsumer>> queues = floor.getFloorQueues();
-
-        int smallestQueueLength = Integer.MAX_VALUE;
-        List<Integer> smallestQueueIndices = new ArrayList<>();
-
-        for (int i = 0; i < queues.size(); i++) {
-            int size = queues.get(i).size();
-            if (size < smallestQueueLength) {
-                smallestQueueLength = size;
-                smallestQueueIndices.clear();
-                smallestQueueIndices.add(i);
-            }
-            else if (size == smallestQueueLength) {
-                smallestQueueIndices.add(i);
-            }
-        }
-
+    private int resolveRandomSmallestQueueIndex(List<Integer> smallestQueueIndices) {
         int randomIndexOfSmallestQueues = new Random().nextInt(smallestQueueIndices.size());
         return smallestQueueIndices.get(randomIndexOfSmallestQueues);
+    }
+
+    private synchronized void waitForReachingElevator() {
+        try {
+            while (!reachedElevator) {
+                wait();
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private synchronized void handleReachedElevator() {
+        reachedElevator = true;
+        notify();
     }
 
     private synchronized void waitForReachingTargetFloor() {
@@ -114,5 +123,10 @@ public class PersonThread extends Thread implements Person, PersonLifecycle {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    private synchronized void handleReachedTargetFloor() {
+        reachedDestination = true;
+        notify();
     }
 }

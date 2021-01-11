@@ -2,18 +2,16 @@ package com.flaringapp.building;
 
 import com.flaringapp.elevator.Elevator;
 import com.flaringapp.floor.Floor;
-import com.flaringapp.floor.QueueConsumer;
-import com.flaringapp.person.PersonInBuilding;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Queue;
 
 public class BuildingImpl implements Building {
 
-    private final List<Floor> floors;
+    private final List<BuildingFloor> floors;
     private final List<Elevator> elevators;
 
-    public BuildingImpl(List<Floor> floors, List<Elevator> elevators) {
+    public BuildingImpl(List<BuildingFloor> floors, List<Elevator> elevators) {
         this.floors = floors;
         this.elevators = elevators;
 
@@ -31,16 +29,6 @@ public class BuildingImpl implements Building {
     }
 
     @Override
-    public List<Floor> getFloors() {
-        return floors;
-    }
-
-    @Override
-    public List<Elevator> getElevators() {
-        return elevators;
-    }
-
-    @Override
     public int floorsCount() {
         return floors.size();
     }
@@ -51,34 +39,63 @@ public class BuildingImpl implements Building {
     }
 
     @Override
-    public void enterQueue(PersonInBuilding person) {
-        Floor floor = floors.get(person.sourceFloor());
-        boolean callElevator = floor.getQueueAtElevator(person.elevatorIndex()).isEmpty();
+    public List<Integer> smallestQueueIndicesAtFloor(int floorIndex) {
+        Floor floor = floors.get(floorIndex);
+        int smallestQueueLength = Integer.MAX_VALUE;
+        List<Integer> smallestQueueIndices = new ArrayList<>();
 
-        floor.enterQueue(person);
-        person.onQueueEntered();
+        for (int i = 0; i < elevators.size(); i++) {
+            int size = floor.getQueueSizeAtElevator(i);
+            if (size < smallestQueueLength) {
+                smallestQueueLength = size;
+                smallestQueueIndices.clear();
+                smallestQueueIndices.add(i);
+            }
+            else if (size == smallestQueueLength) {
+                smallestQueueIndices.add(i);
+            }
+        }
+
+        return smallestQueueIndices;
+    }
+
+    @Override
+    public void enterQueue(BuildingConsumer consumer) {
+        // TODO enter elevator if it is opened on this floor
+
+        Floor floor = floors.get(consumer.sourceFloor());
+
+        boolean callElevator = floor.enterQueue(consumer);
+        consumer.onQueueEntered();
         
         if (callElevator) {
-            elevators.get(person.elevatorIndex()).callAtFloor(person.sourceFloor());
+            elevators.get(consumer.elevatorIndex())
+                    .callAtFloor(consumer.sourceFloor());
         }
     }
 
+    @Override
+    public void enterElevator(BuildingConsumer consumer) {
+        Floor floor = floors.get(consumer.sourceFloor());
+        floor.leaveQueue(consumer);
+        elevators.get(consumer.elevatorIndex()).enter(consumer);
+    }
+
+    @Override
+    public void leaveElevator(BuildingConsumer consumer) {
+        elevators.get(consumer.elevatorIndex()).leave(consumer);
+    }
+
     private void fillElevatorWithConsumers(Elevator elevator) {
+        BuildingFloor floor = floors.get(elevator.getCurrentFloor());
         int elevatorIndex = elevators.indexOf(elevator);
-
-        Floor floor = floors.get(elevator.getCurrentFloor());
-        Queue<QueueConsumer> queue = floor.getQueueAtElevator(elevatorIndex);
-
-        while (!queue.isEmpty()) {
-            QueueConsumer consumer = queue.peek();
-            if (!consumer.enterElevator(elevator)) break;
-            floor.leaveQueue(consumer);
-        }
+        floor.notifyHeadConsumerQueueCompleted(elevatorIndex);
     }
 
     private boolean hasNobodyToLeave(Elevator elevator) {
         return elevator.getConsumers().stream()
                 .anyMatch(consumer -> consumer.destinationFloor() == elevator.getCurrentFloor());
     }
+
 
 }

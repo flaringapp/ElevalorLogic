@@ -22,7 +22,4 @@ public interface Elevator {
 
     Observable<List<ElevatorConsumer>> getConsumersObservable();
 
-    boolean isBeingInteracted();
-    void setIsBeingInteracted(boolean isBeingInteracted);
-
 }

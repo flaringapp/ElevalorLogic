@@ -15,10 +15,11 @@ public class ElevatorThread extends Thread implements Elevator {
 
     private final ElevatorControllable elevator;
 
-    private final Object stateLock = new Object();
+    private final Object accessLock = new Object();
+    private final Object movementLock = new Object();
 
     private boolean isWaitingForTask = true;
-    private boolean canLeave = true;
+    private boolean canLeave = false;
 
     public ElevatorThread(ElevatorControllable elevator) {
         this.elevator = elevator;
@@ -33,22 +34,26 @@ public class ElevatorThread extends Thread implements Elevator {
         while (true) {
             Logger.getInstance().log("Elevator " + getName() + " waiting to activate");
 
-            synchronized (stateLock) {
-                waitToActivate();
-            }
+            waitToActivate();
 
             Logger.getInstance().log("Elevator " + getName() + " activated. Resolving floor index to go...");
-            while (strategy.hasWhereToGo(this)) {
-                int floor = strategy.resolveFloorToGo(this);
-                Logger.getInstance().log("Elevator " + getName() + " goes to floor " + floor);
-                goToFloor(floor);
+
+            synchronized (accessLock) {
+                while (strategy.hasWhereToGo(this)) {
+                    int floor;
+                    floor = strategy.resolveFloorToGo(this);
+                    Logger.getInstance().log("Elevator " + getName() + " goes to floor " + floor);
+                    goToFloor(floor);
+                }
             }
         }
     }
 
     @Override
     public int getCurrentFloor() {
-        return elevator.getCurrentFloor();
+        synchronized (accessLock) {
+            return elevator.getCurrentFloor();
+        }
     }
 
     @Override
@@ -57,25 +62,52 @@ public class ElevatorThread extends Thread implements Elevator {
     }
 
     @Override
+    public Set<Integer> getCalledFloors() {
+        synchronized (accessLock) {
+            return elevator.getCalledFloors();
+        }
+    }
+
+    @Override
+    public void callAtFloor(int floor) {
+        synchronized (accessLock) {
+            Logger.getInstance().log("Elevator " + elevator + " called at floor " + floor);
+            elevator.callAtFloor(floor);
+
+            if (isWaitingForTask) {
+                accessLock.notify();
+            }
+        }
+    }
+
+    @Override
     public List<ElevatorConsumer> getConsumers() {
-        return elevator.getConsumers();
+        synchronized (accessLock) {
+            return elevator.getConsumers();
+        }
     }
 
     @Override
     public boolean canEnter(ElevatorConsumer consumer) {
-        return elevator.canEnter(consumer);
+        synchronized (accessLock) {
+            return elevator.canEnter(consumer);
+        }
     }
 
     @Override
     public void enter(ElevatorConsumer consumer) {
-        elevator.enter(consumer);
-        resetMovementDelay();
+        synchronized (accessLock) {
+            elevator.enter(consumer);
+            resetMovementDelay();
+        }
     }
 
     @Override
     public void leave(ElevatorConsumer consumer) {
-        elevator.leave(consumer);
-        resetMovementDelay();
+        synchronized (accessLock) {
+            elevator.leave(consumer);
+            resetMovementDelay();
+        }
     }
 
     @Override
@@ -83,83 +115,12 @@ public class ElevatorThread extends Thread implements Elevator {
         return elevator.getConsumersObservable();
     }
 
-    @Override
-    public boolean isBeingInteracted() {
-        return elevator.isBeingInteracted();
-    }
-
-    @Override
-    public void setIsBeingInteracted(boolean isBeingInteracted) {
-        elevator.setIsBeingInteracted(isBeingInteracted);
-    }
-
-    @Override
-    public Set<Integer> getCalledFloors() {
-        synchronized (stateLock) {
-            return elevator.getCalledFloors();
-        }
-    }
-
-    @Override
-    public void callAtFloor(int floor) {
-        synchronized (stateLock) {
-            Logger.getInstance().log("Elevator " + elevator + " called at floor " + floor);
-            elevator.callAtFloor(floor);
-
-            if (isWaitingForTask) {
-                stateLock.notify();
-            }
-        }
-    }
-
-    private void goToFloor(int floor) {
-        synchronized (stateLock) {
-            Logger.getInstance().log("Elevator " + elevator + " performs movement to floor " + floor);
-
-            performMovement(floor);
-
-            Logger.getInstance().log("Elevator " + elevator + " reached floor " + floor);
-
-            getConsumers().forEach(consumer -> consumer.onElevatorDockedToFloor(this, floor));
-            getFloorObservable().notifyObservers(floor);
-
-            Logger.getInstance().log("Elevator " + elevator + " waiting for further movement " + floor);
-            waitBeforeMoveFurther();
-        }
-    }
-
-    private void performMovement(int floor) {
-        int distance = floor - elevator.getCurrentFloor();
-        boolean increment = distance < 0;
-        while (distance != 0) {
-            waitForFloorMovement();
-            if (increment) distance++;
-            else distance--;
-            elevator.setCurrentFloor(floor - distance);
-        }
-    }
-
-    private void waitBeforeMoveFurther() {
-        canLeave = false;
-        while (!canLeave) {
-            canLeave = true;
-            waitForMove();
-        }
-    }
-
-    private void resetMovementDelay() {
-        synchronized (stateLock) {
-            canLeave = false;
-            stateLock.notify();
-        }
-    }
-
     private void waitToActivate() {
-        synchronized (stateLock) {
+        synchronized (accessLock) {
             while (!elevator.getMovementStrategy().hasWhereToGo(this)) {
                 isWaitingForTask = true;
                 try {
-                    stateLock.wait();
+                    accessLock.wait();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -168,19 +129,73 @@ public class ElevatorThread extends Thread implements Elevator {
         }
     }
 
-    private void waitForFloorMovement() {
-        try {
-            stateLock.wait(SPEED);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+    private void goToFloor(int floor) {
+        Logger.getInstance().log("Elevator " + elevator + " performs movement to floor " + floor);
+
+        performMovement(floor);
+
+        Logger.getInstance().log("Elevator " + elevator + " reached floor " + floor);
+
+        synchronized (accessLock) {
+            getConsumers().forEach(consumer -> consumer.onElevatorDockedToFloor(this, floor));
+            getFloorObservable().notifyObservers(floor);
+        }
+
+        Logger.getInstance().log("Elevator " + elevator + " waiting for further movement " + floor);
+        waitBeforeMoveFurther();
+    }
+
+    private void performMovement(int floor) {
+        int distance;
+        synchronized (accessLock) {
+            distance = floor - elevator.getCurrentFloor();
+        }
+        boolean increment = distance < 0;
+        while (distance != 0) {
+            moveToNextFloor();
+            if (increment) distance++;
+            else distance--;
+
+            synchronized (accessLock) {
+                elevator.setCurrentFloor(floor - distance);
+            }
         }
     }
 
-    private void waitForMove() {
-        try {
-            stateLock.wait(LEAVE_DELAY);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+    private void moveToNextFloor() {
+        synchronized (movementLock) {
+            try {
+                movementLock.wait(SPEED);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void waitBeforeMoveFurther() {
+        synchronized (movementLock) {
+            canLeave = false;
+            while (!canLeave) {
+                canLeave = true;
+                waitBeforeStartMovement();
+            }
+        }
+    }
+
+    private void waitBeforeStartMovement() {
+        synchronized (movementLock) {
+            try {
+                movementLock.wait(LEAVE_DELAY);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void resetMovementDelay() {
+        synchronized (movementLock) {
+            canLeave = false;
+            movementLock.notify();
         }
     }
 
