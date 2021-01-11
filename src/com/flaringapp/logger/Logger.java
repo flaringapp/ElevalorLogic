@@ -9,7 +9,7 @@ public final class Logger {
     private final LoggerSubject subject;
 
     private Logger() {
-        subject = new FormattedLoggerSubject(resolveLoggerFile());
+        subject = new FormattedLoggerSubject(new SynchronizedLoggerSubject(resolveLoggerFile()));
     }
 
     public void log(String message) {

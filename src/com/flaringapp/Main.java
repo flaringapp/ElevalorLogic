@@ -25,10 +25,11 @@ public class Main {
         Logger.getInstance().logTitle("App started");
 
         Building building = createBuilding();
-        Logger.getInstance().log("Building created successfully");
+        Logger.getInstance().logTitle("Building created successfully");
 
         UserSpawner spawner = new UserSpawner(building);
         spawner.startSpawn();
+        Logger.getInstance().logTitle("User spawner started successfully");
 
         Logger.getInstance().logTitle("App initialized successfully");
     }

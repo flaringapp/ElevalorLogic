@@ -1,6 +1,7 @@
 package com.flaringapp.spawner;
 
 import com.flaringapp.building.Building;
+import com.flaringapp.logger.Logger;
 import com.flaringapp.person.Person;
 import com.flaringapp.person.PersonImpl;
 import com.flaringapp.person.PersonThread;
@@ -38,21 +39,24 @@ public class UserSpawner {
     private void infiniteSpawning() {
         synchronized (activeLock) {
             while (isActive) {
-                executeSpawn();
                 try {
                     activeLock.wait(DELAY);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
+                executeSpawn();
             }
         }
     }
 
     private void executeSpawn() {
+        Logger.getInstance().log("Trying to spawn a new person...");
+
         Person person = new PersonImpl(
                 String.valueOf(counter),
                 new Random().nextInt(20) + 60f
         );
+        Logger.getInstance().log("New spawner person created: " + person);
 
         counter++;
 
@@ -63,7 +67,10 @@ public class UserSpawner {
                 building,
                 from, to
         );
+        Logger.getInstance().log("New spawned person thread created: " + personThread.getName());
+
         personThread.start();
+        Logger.getInstance().log("New person spawned successfully: " + person);
     }
 
     private int randomFloorFrom() {
