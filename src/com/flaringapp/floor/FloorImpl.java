@@ -40,7 +40,7 @@ public class FloorImpl implements BuildingFloor {
         Queue<QueueConsumer> queue = queues.get(person.elevatorIndex());
         synchronized (queue) {
             if (queue.peek() != person) {
-                throw new IllegalStateException("Person " + person + " tried to leave elevator " + person.elevatorIndex() +
+                throw new IllegalStateException("Person " + person + " tried to enter elevator " + person.elevatorIndex() +
                         " without entering it's queue"
                 );
             }
